@@ -24,8 +24,16 @@ let plugin_categories = ['ext', 'dev', 'dev_ext', 'col']
 
 " Bootstrap vim-plug, if not already present
 if has("unix") || has("macunix")
-  if empty(glob("~/.vim/autoload/plug.vim"))
-    execute '!mkdir -p ~/.vim/autoload && curl -fLo ~/.vim/autoload/plug.vim https://raw.github.com/junegunn/vim-plug/master/plug.vim'
+  if empty(glob('~/.vim/autoload/plug.vim'))
+    silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
+        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
+    autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+  endif
+elseif has("win32")
+  if empty(glob('~/vimfiles/autoload/plug.vim'))
+    echo "You will need to install vim-plug manually for this .vimrc to work."
+    echo "(https://github.com/junegunn/vim-plug)"
+    exit
   endif
 endif
 
@@ -58,10 +66,13 @@ if index(plugin_categories, 'ext') >= 0
   Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
   Plug 'mhinz/vim-startify'             " A fancy start screen
   Plug 'godlygeek/tabular'              " Text alignment made easy
+  Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
+  Plug 'itspriddle/vim-stripper'        " Strip trailing whitespace on save
   let have_airline = 1
   let have_ack = 1
   let have_ctrlp = 1
   let have_nerdtree = 1
+  let have_yankstack = 1
 endif
 
 if index(plugin_categories, 'dev') >= 0
@@ -70,6 +81,7 @@ if index(plugin_categories, 'dev') >= 0
   Plug 'tpope/vim-fugitive'             " Git wrapper
   Plug 'vim-gitgutter'                  " Show visual git diff in the gutter
   Plug 'nacitar/a.vim'                  " Easy switching between header and translation unit
+  Plug 'airblade/vim-rooter'            " Changes working directory to project root
 endif
 
 if index(plugin_categories, 'dev_ext') >= 0
@@ -77,7 +89,7 @@ if index(plugin_categories, 'dev_ext') >= 0
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
   Plug 'jmcantrell/vim-virtualenv'      " Improved working with virtualenvs
   Plug 'vim-syntastic/syntastic'        " Syntax checking for many languages
-  if has("unix") || has("macunix")
+  if (has("unix") || has("macunix")) && !has("win32unix")
     Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
   endif
   let have_syntastic = 1
@@ -180,9 +192,15 @@ set showmatch           " Highlight matching [{()}]
 set mat=2               " How many tenths of a second to blink when matching brackets
 set splitbelow          " New horizontal splits open below
 set splitright          " New vertical splits open to the right
+set foldenable          " Enable folding
+
+" Allow mapping of meta/option key in MacVim
+if has("macunix") && has("gui_running")
+  set macmeta
+endif
 
 " Better font in Windows GUI
-if has("gui_running") && has("win32")
+if has("win32") && has("gui_running")
   set guifont=Consolas:h11
 endif
 
@@ -324,8 +342,8 @@ if has("unix") && has("gui_running")
   noremap <silent> <F11> :call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")<cr>
 endif
 
-" F12: Source currently loaded file (such as the .vimrc)
-nnoremap <silent> <F12> :source %<cr>
+" F12: Source .vimrc
+nnoremap <silent> <F12> :source $MYVIMRC<cr>
 
 " Miscellaneous settings
 "=======================================
@@ -341,8 +359,25 @@ noremap <leader>0 :call LineHome()<cr>:echo<cr>
 noremap <Home> :call LineHome()<cr>:echo<cr>
 inoremap <Home> <C-R>=LineHome()<cr>
 
-" Paste from yank register with <leader>p
+" Paste from yank register with <leader>p/P
 noremap <leader>p "0p
+noremap <leader>P "0P
+
+if exists('have_yankstack')
+  " Yankstack
+  if has("macunix") && !has("gui_running")
+    " Option-p:
+    nmap π <Plug>yankstack_substitute_older_paste
+    " Option-P:
+    nmap ∏ <Plug>yankstack_substitute_newer_paste
+  endif
+  " Need to omit 's', 'S' from being remapped because of vim-sneak
+  let g:yankstack_yank_keys = ['c', 'C', 'd', 'D', 'x', 'X', 'y', 'Y']
+  call yankstack#setup()  " needs to be called before remapping Y
+endif
+
+" Map Y to behave like C, D
+nmap Y y$
 
 " Plugin configurations
 "=======================================
@@ -393,6 +428,7 @@ if exists('have_ycm')
   nnoremap <silent> <Leader>yf :YcmCompleter GoToDefinition<cr>
   nnoremap <silent> <Leader>yt :YcmCompleter GetType<cr>
   nnoremap <silent> <Leader>yd :YcmCompleter GetDoc<cr>
+  nnoremap <silent> <Leader>yx :YcmCompleter FixIt<cr>
 endif
 
 if exists('have_syntastic')
