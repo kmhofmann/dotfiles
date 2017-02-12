@@ -82,6 +82,7 @@ if index(plugin_categories, 'dev') >= 0
   Plug 'vim-gitgutter'                  " Show visual git diff in the gutter
   Plug 'nacitar/a.vim'                  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'            " Changes working directory to project root
+  let have_gitgutter = 1
 endif
 
 if index(plugin_categories, 'dev_ext') >= 0
@@ -261,40 +262,47 @@ endfunction
 " Map leader key to <Space>
 let mapleader = "\<Space>"
 
-" Use 'jj' to exit insert mode
+" Use 'jj'/'jk' to exit insert mode; en-/disable as desired
 inoremap jj <Esc>
+inoremap jk <Esc>
+
+" Disable Shift-K
+noremap <S-k> <nop>
 
 " Allow the . to execute once for each line of a visual selection
 vnoremap . :normal .<cr>
 
-" Disable Shift-K in normal mode
-nnoremap <S-k> <nop>
+" Paste from yank register with <leader>p/P
+noremap <leader>p "0p
+noremap <leader>P "0P
 
 " Move vertically by visual line
-nnoremap j gj
-nnoremap k gk
+noremap j gj
+noremap k gk
 
-" Scroll 4 lines up and down
-noremap <C-d> 4<C-d>
-noremap <C-u> 4<C-u>
+" Scroll 5 lines up and down
+noremap <C-d> 5<C-d>
+noremap <C-u> 5<C-u>
 
-" Move lines up or down with Alt-j/k
+" Move 5 lines up and down
+noremap <A-j> 5j
+noremap <A-k> 5k
+
+" Move to beginning of line/first whitespace character or end of line
+noremap <leader>0 :call LineHome()<cr>:echo<cr>
+noremap <Home> :call LineHome()<cr>:echo<cr>
+inoremap <Home> <C-R>=LineHome()<cr>
+noremap <A-h> :call LineHome()<cr>:echo<cr>
+noremap <A-l> $
+
+" Move lines up or down with Alt-d/u
 " (http://vim.wikia.com/wiki/Moving_lines_up_or_down)
-if has("macunix")
-  nnoremap ∆ :m .+1<cr>==
-  nnoremap ˚ :m .-2<cr>==
-  inoremap ∆ <Esc>:m .+1<cr>==gi
-  inoremap ˚ <Esc>:m .-2<cr>==gi
-  vnoremap ∆ :m '>+1<cr>gv=gv
-  vnoremap ˚ :m '<-2<cr>gv=gv
-else
-  nnoremap <A-j> :m .+1<cr>==
-  nnoremap <A-k> :m .-2<cr>==
-  inoremap <A-j> <Esc>:m .+1<cr>==gi
-  inoremap <A-k> <Esc>:m .-2<cr>==gi
-  vnoremap <A-j> :m '>+1<cr>gv=gv
-  vnoremap <A-k> :m '<-2<cr>gv=gv
-endif
+nnoremap <A-d> :m .+1<cr>==
+nnoremap <A-u> :m .-2<cr>==
+inoremap <A-d> <Esc>:m .+1<cr>==gi
+inoremap <A-u> <Esc>:m .-2<cr>==gi
+vnoremap <A-d> :m '>+1<cr>gv=gv
+vnoremap <A-u> :m '<-2<cr>gv=gv
 
 " Movement in insert mode with Ctrl-h/j/k/l
 inoremap <C-k> <Up>
@@ -303,10 +311,10 @@ inoremap <C-h> <Left>
 inoremap <C-l> <Right>
 
 " Quick window switching with Ctrl-h/j/k/l
-nnoremap  <C-h>  <C-w>h
-nnoremap  <C-j>  <C-w>j
-nnoremap  <C-k>  <C-w>k
-nnoremap  <C-l>  <C-w>l
+noremap  <C-h>  <C-w>h
+noremap  <C-j>  <C-w>j
+noremap  <C-k>  <C-w>k
+noremap  <C-l>  <C-w>l
 
 " Quick switching to alternate buffer
 nnoremap <silent> <leader>a :b#<cr>
@@ -326,16 +334,22 @@ noremap <F1> :set number!<cr>
 noremap <F2> :set relativenumber!<cr>
 
 " F3: Switch display of unprintable characters
-nnoremap <F3> :set list!<cr>
+noremap <F3> :set list!<cr>
 
 " F4: Switch text wrapping
-nnoremap <F4> :set wrap!<cr>
+noremap <F4> :set wrap!<cr>
 
 " F5: Switch paste mode
-nnoremap <F5> :setlocal paste!<cr>
+noremap <F5> :setlocal paste!<cr>
+
+" F8: Syntastic check
+noremap <silent> <F8> :SyntasticCheck<cr>
+
+" F9: Syntastic reset
+noremap <silent> <F9> :SyntasticReset<cr>
 
 " F10: Strip trailing whitespaces
-nnoremap <silent> <F10> :call Preserve("%s/\\s\\+$//e")<cr>
+" nnoremap <silent> <F10> :call Preserve("%s/\\s\\+$//e")<cr>
 
 " F11: Switch gvim to fullscreen (requires wmctrl)
 if has("unix") && has("gui_running")
@@ -343,7 +357,7 @@ if has("unix") && has("gui_running")
 endif
 
 " F12: Source .vimrc
-nnoremap <silent> <F12> :source $MYVIMRC<cr>
+noremap <silent> <F12> :source $MYVIMRC<cr>
 
 " Miscellaneous settings
 "=======================================
@@ -353,15 +367,6 @@ let loaded_matchparen = 1
 
 " Expand '%%' to path of current file (see Practical Vim, pg. 101)
 cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
-
-" Alternate mappings for combined 0/^ (first non-whitespace character)
-noremap <leader>0 :call LineHome()<cr>:echo<cr>
-noremap <Home> :call LineHome()<cr>:echo<cr>
-inoremap <Home> <C-R>=LineHome()<cr>
-
-" Paste from yank register with <leader>p/P
-noremap <leader>p "0p
-noremap <leader>P "0P
 
 if exists('have_yankstack')
   " Yankstack
@@ -419,6 +424,10 @@ if exists('have_nerdtree')
   autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 endif
 
+if exists('have_gitgutter')
+  let g:gitgutter_async = 0
+endif
+
 if exists('have_ycm')
   " YouCompleteMe
   let g:ycm_confirm_extra_conf = 0
@@ -433,11 +442,13 @@ endif
 
 if exists('have_syntastic')
   " Syntastic
-  let g:syntastic_always_populate_loc_list = 1
-  let g:syntastic_auto_loc_list = 1
-  let g:syntastic_check_on_open = 1
+  let g:syntastic_mode_map = { 'mode': 'passive' }  " Disable checking unless user-requested
+  let g:syntastic_always_populate_loc_list = 1  " Automatically populate location list
+  let g:syntastic_auto_loc_list = 1  " Automatically open/close location list
+  let g:syntastic_check_on_open = 0
   let g:syntastic_check_on_wq = 0
-  let g:syntastic_loc_list_height = 5
+  let g:syntastic_loc_list_height = 10
+  let g:syntastic_python_pylint_post_args="--max-line-length=120"
 endif
 
 if exists('have_ack')
