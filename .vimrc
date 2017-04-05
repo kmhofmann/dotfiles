@@ -79,6 +79,7 @@ if index(plugin_categories, 'dev') >= 0
   " Basic development plugins
   Plug 'scrooloose/nerdcommenter'       " Commenting code
   Plug 'tpope/vim-fugitive'             " Git wrapper
+  " Plug 'jreybert/vimagit'               " Git wrapper
   Plug 'vim-gitgutter'                  " Show visual git diff in the gutter
   Plug 'nacitar/a.vim'                  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'            " Changes working directory to project root
@@ -89,11 +90,16 @@ if index(plugin_categories, 'dev_ext') >= 0
   " Extended bevelopment plugins
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
   Plug 'jmcantrell/vim-virtualenv'      " Improved working with virtualenvs
-  Plug 'vim-syntastic/syntastic'        " Syntax checking for many languages
+  if (v:version < 800)
+    Plug 'vim-syntastic/syntastic'        " Syntax checking for many languages
+    let have_syntastic = 1
+  else
+    Plug 'w0rp/ale'                       " Asynchronous Lint Engine
+    let have_ale = 1
+  endif
   if (has("unix") || has("macunix")) && !has("win32unix")
     Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
   endif
-  let have_syntastic = 1
   let have_ycm = 1
 endif
 
@@ -438,6 +444,8 @@ if exists('have_ycm')
   nnoremap <silent> <Leader>yt :YcmCompleter GetType<cr>
   nnoremap <silent> <Leader>yd :YcmCompleter GetDoc<cr>
   nnoremap <silent> <Leader>yx :YcmCompleter FixIt<cr>
+
+  let g:ycm_enable_diagnostic_signs = 0  " Disable diagnostics when ALE is enabled for C and C++
 endif
 
 if exists('have_syntastic')
@@ -449,6 +457,23 @@ if exists('have_syntastic')
   let g:syntastic_check_on_wq = 0
   let g:syntastic_loc_list_height = 10
   let g:syntastic_python_pylint_post_args="--max-line-length=120"
+endif
+
+if exists('have_ale')
+  " ALE
+  " - Enable some linters. Note C and C++ are missing - support isn't that great yet
+  let g:ale_linters = {
+        \ 'json': 'all',
+        \ 'markdown': 'all',
+        \ 'python': 'all',
+        \ 'tex': 'all',
+        \ 'vim': 'all',
+        \ }
+  " let g:ale_python_flake8_args = '--ignore=E,W,F403,F405 --select=F,C'
+  " let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -Werror -fexceptions -DNDEBUG'
+  " let g:ale_cpp_clang_options = '-std=c++14 -Wall -Wextra -Werror -fexceptions -DNDEBUG'
+  " set statusline+=%{ALEGetStatusLine()}
+  " let g:ale_statusline_format = ['⨉ %d', '⚠ %d', '⬥ ok']
 endif
 
 if exists('have_ack')
