@@ -55,6 +55,7 @@ Plug 'justinmk/vim-sneak'             " f-like search using two letters
 Plug 'moll/vim-bbye'                  " Adds :Bdelete command to close buffer but keep window
 Plug 'jeetsukumaran/vim-buffergator'  " Select, list and switch between buffers easily
 Plug 'Valloric/ListToggle'            " Easily display or hide quickfix or location list
+Plug 'ConradIrwin/vim-bracketed-paste'  " Automatically set paste mode
 
 if index(plugin_categories, 'ext') >= 0
   " Extended plugins
@@ -66,13 +67,15 @@ if index(plugin_categories, 'ext') >= 0
   Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
   Plug 'mhinz/vim-startify'             " A fancy start screen
   Plug 'godlygeek/tabular'              " Text alignment made easy
-  Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
+  "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
   Plug 'itspriddle/vim-stripper'        " Strip trailing whitespace on save
+  Plug 'svermeulen/vim-easyclip'        " Improved clipboard functionality
   let have_airline = 1
   let have_ack = 1
   let have_ctrlp = 1
   let have_nerdtree = 1
-  let have_yankstack = 1
+  "let have_yankstack = 1
+  let have_easyclip = 1
 endif
 
 if index(plugin_categories, 'dev') >= 0
@@ -100,7 +103,9 @@ if index(plugin_categories, 'dev_ext') >= 0
   if (has("unix") || has("macunix")) && !has("win32unix")
     Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
   endif
+  Plug 'lyuts/vim-rtags'
   let have_ycm = 1
+  let have_rtags = 1
 endif
 
 if index(plugin_categories, 'col') >= 0
@@ -138,6 +143,8 @@ endif
 set swapfile
 set nobackup
 set nowritebackup
+
+set clipboard=unnamed
 
 " Tabbing and indentation
 "=======================================
@@ -278,9 +285,11 @@ noremap <S-k> <nop>
 " Allow the . to execute once for each line of a visual selection
 vnoremap . :normal .<cr>
 
-" Paste from yank register with <leader>p/P
-noremap <leader>p "0p
-noremap <leader>P "0P
+if !exists('have_easyclip')
+  " Paste from yank register with <leader>p/P
+  noremap <leader>p "0p
+  noremap <leader>P "0P
+endif
 
 " Move vertically by visual line
 noremap j gj
@@ -334,19 +343,22 @@ nnoremap <leader>o <C-w>o  " make current one the only window
 nnoremap <silent> <leader><Space> :nohlsearch<cr>
 
 " F1: Switch line numbering
-noremap <F1> :set number!<cr>
+noremap <F1> :set number!<cr>:set number?<cr>
 
 " F2: Switch relative line numbering
-noremap <F2> :set relativenumber!<cr>
+noremap <F2> :set relativenumber!<cr>:set relativenumber?<cr>
 
 " F3: Switch display of unprintable characters
-noremap <F3> :set list!<cr>
+noremap <F3> :set list!<cr>:set list?<cr>
 
 " F4: Switch text wrapping
-noremap <F4> :set wrap!<cr>
+noremap <F4> :set wrap!<cr>:set wrap?<cr>
 
 " F5: Switch paste mode
-noremap <F5> :setlocal paste!<cr>
+noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
+
+" F6: Switch case sensitivity
+noremap <F6> :set ignorecase!<cr>:set ignorecase?<cr>
 
 " F8: Syntastic check
 noremap <silent> <F8> :SyntasticCheck<cr>
@@ -387,8 +399,10 @@ if exists('have_yankstack')
   call yankstack#setup()  " needs to be called before remapping Y
 endif
 
-" Map Y to behave like C, D
-nmap Y y$
+if !exists('have_easyclip')
+  " Map Y to behave like C, D
+  nmap Y y$
+endif
 
 " Plugin configurations
 "=======================================
@@ -430,6 +444,12 @@ if exists('have_nerdtree')
   autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 endif
 
+if exists('have_easyclip')
+  " vim-easyclip
+  nnoremap gm m
+  let g:EasyClipAlwaysMoveCursorToEndOfPaste = 1
+endif
+
 if exists('have_gitgutter')
   let g:gitgutter_async = 0
 endif
@@ -446,6 +466,12 @@ if exists('have_ycm')
   nnoremap <silent> <Leader>yx :YcmCompleter FixIt<cr>
 
   let g:ycm_enable_diagnostic_signs = 0  " Disable diagnostics when ALE is enabled for C and C++
+endif
+
+if exists('have_rtags')
+  " vim-rtags
+  let g:rtagsAutoLaunchRdm = 1
+  let g:rtagsExcludeSysHeaders = 1
 endif
 
 if exists('have_syntastic')
