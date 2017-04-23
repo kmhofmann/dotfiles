@@ -20,7 +20,8 @@
 " Plugin management
 "=======================================
 
-let plugin_categories = ['ext', 'dev', 'dev_ext', 'col']
+let plugin_categories = ['ext', 'dev', 'dev_ext', 'col', 'misc']
+let faster_redraw = 0
 
 " Bootstrap vim-plug, if not already present
 if has("unix") || has("macunix")
@@ -59,30 +60,34 @@ Plug 'ConradIrwin/vim-bracketed-paste'  " Automatically set paste mode
 
 if index(plugin_categories, 'ext') >= 0
   " Extended plugins
-  "  Plug 'tpope/vim-sleuth'               " Adjust indentation settings automatically
+  "Plug 'tpope/vim-sleuth'               " Adjust indentation settings automatically
+  "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
+  "Plug 'ctrlpvim/ctrlp.vim'             " Fuzzy file finder
   Plug 'vim-airline/vim-airline'        " Status/tabline
   Plug 'vim-airline/vim-airline-themes' " Themes for vim-airline
+  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+  Plug 'junegunn/fzf.vim'
   Plug 'mileszs/ack.vim'                " Wrapper for ack (grep-like tool)
-  Plug 'ctrlpvim/ctrlp.vim'             " Fuzzy file finder
-  Plug 'scrooloose/nerdtree', { 'on': ['NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
+  Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
+  Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
   Plug 'mhinz/vim-startify'             " A fancy start screen
   Plug 'godlygeek/tabular'              " Text alignment made easy
-  "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
   Plug 'itspriddle/vim-stripper'        " Strip trailing whitespace on save
   Plug 'svermeulen/vim-easyclip'        " Improved clipboard functionality
-  let have_airline = 1
-  let have_ack = 1
-  let have_ctrlp = 1
-  let have_nerdtree = 1
   "let have_yankstack = 1
+  "let have_ctrlp = 1
+  let have_airline = 1
+  let have_fzf = 1
+  let have_ack = 1
+  let have_nerdtree = 1
   let have_easyclip = 1
 endif
 
 if index(plugin_categories, 'dev') >= 0
   " Basic development plugins
   Plug 'scrooloose/nerdcommenter'       " Commenting code
+  "Plug 'jreybert/vimagit'               " Git wrapper
   Plug 'tpope/vim-fugitive'             " Git wrapper
-  " Plug 'jreybert/vimagit'               " Git wrapper
   Plug 'vim-gitgutter'                  " Show visual git diff in the gutter
   Plug 'nacitar/a.vim'                  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'            " Changes working directory to project root
@@ -116,6 +121,14 @@ if index(plugin_categories, 'col') >= 0
   Plug 'chriskempson/base16-vim'        " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
+if index(plugin_categories, 'misc') >= 0
+  Plug 'junegunn/limelight.vim'
+  Plug 'junegunn/goyo.vim'
+  let g:goyo_width = 120
+  autocmd! User GoyoEnter Limelight
+  autocmd! User GoyoLeave Limelight!
+endif
+
 if index(plugin_categories, 'annoying') >= 0
   " Annoying plugins
   Plug 'takac/vim-hardtime'             " Enables a hard time
@@ -128,7 +141,7 @@ call plug#end()
 
 set timeoutlen=500
 set ttimeoutlen=10
-set updatetime=250
+set updatetime=500
 
 set history=500       " Sets how many lines of history VIM has to remember
 set autoread          " Set to auto read when a file is changed from the outside
@@ -193,9 +206,11 @@ set laststatus=2        " Always show the status line
 set scrolloff=5         " Set 5 lines to the cursor - when moving vertically using j/k
 set hidden              " A buffer becomes hidden when it is abandoned
 set number              " Show line numbers
-set relativenumber      " Show relative line numbers
+if !faster_redraw
+  set relativenumber      " Show relative line numbers
+  set cursorline          " Highlight current line
+endif
 set showcmd             " Show command in bottom bar
-set cursorline          " Highlight current line
 set ruler               " Always show current position
 set nowrap              " Don't wrap overly long lines
 set wildmode=longest,list
@@ -207,6 +222,7 @@ set mat=2               " How many tenths of a second to blink when matching bra
 set splitbelow          " New horizontal splits open below
 set splitright          " New vertical splits open to the right
 set foldenable          " Enable folding
+set synmaxcol=300       " Highlight up to 300 columns
 
 " Allow mapping of meta/option key in MacVim
 if has("macunix") && has("gui_running")
@@ -222,6 +238,10 @@ if !has("win32") && !has("gui_running")
   set term=screen-256color
 endif
 set t_ut=
+
+if !has('gui_running')
+  set t_Co=256
+endif
 
 " File type specific settings
 "=======================================
@@ -277,7 +297,7 @@ let mapleader = "\<Space>"
 
 " Use 'jj'/'jk' to exit insert mode; en-/disable as desired
 inoremap jj <Esc>
-inoremap jk <Esc>
+"inoremap jk <Esc>
 
 " Disable Shift-K
 noremap <S-k> <nop>
@@ -331,16 +351,21 @@ noremap  <C-j>  <C-w>j
 noremap  <C-k>  <C-w>k
 noremap  <C-l>  <C-w>l
 
+" Don't lose selection when shifting sidewards
+xnoremap <  <gv
+xnoremap >  >gv
+
 " Quick switching to alternate buffer
 nnoremap <silent> <leader>a :b#<cr>
 
 " Shortcuts for window handling
-nnoremap <leader>r <C-w>r  " rotate windows
+"nnoremap <leader>r <C-w>r  " rotate windows
 nnoremap <leader>w <C-w>q  " close current window
 nnoremap <leader>o <C-w>o  " make current one the only window
 
 " Disable highlighting of search results
-nnoremap <silent> <leader><Space> :nohlsearch<cr>
+"nnoremap <silent> <leader><Space> :set hlsearch!<cr>
+nnoremap <silent><expr> <Leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
 
 " F1: Switch line numbering
 noremap <F1> :set number!<cr>:set number?<cr>
@@ -360,11 +385,14 @@ noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
 " F6: Switch case sensitivity
 noremap <F6> :set ignorecase!<cr>:set ignorecase?<cr>
 
-" F8: Syntastic check
-noremap <silent> <F8> :SyntasticCheck<cr>
+" F7: Syntastic check
+noremap <silent> <F7> :SyntasticCheck<cr>
 
-" F9: Syntastic reset
-noremap <silent> <F9> :SyntasticReset<cr>
+" F8: Syntastic reset
+noremap <silent> <F8> :SyntasticReset<cr>
+
+" F9: Find file in NERDTree
+" (See below)
 
 " F10: Strip trailing whitespaces
 " nnoremap <silent> <F10> :call Preserve("%s/\\s\\+$//e")<cr>
@@ -432,13 +460,41 @@ if exists('have_airline')
   let g:airline#extensions#tabline#show_tabs = 1
 endif
 
+if exists('have_fzf')
+  " fzf.vim
+  if !exists('have_ctrlp')
+    nnoremap <silent> <C-p> :FZF<cr>
+  endif
+  nnoremap <silent> <leader>ff :Files<CR>
+  nnoremap <silent> <leader>fb :Buffers<CR>
+  nnoremap <silent> <leader>fw :Windows<CR>
+  nnoremap <silent> <leader>fh :History<CR>
+endif
+
 if exists('have_nerdtree')
   " NERDTree
-  nnoremap <silent> <C-n> :NERDTreeToggle<cr>
+  function! FocusOrCloseNERDTree()
+    if bufname('') =~ "^NERD_tree_"
+      :NERDTreeToggle
+    else
+      for p in map(range(1, winnr('$')), '[v:val, bufname(winbufnr(v:val))]')
+        if p[1] =~ "^NERD_tree_"
+          :exe p[0] . "wincmd w"
+          break
+        endif
+      endfor
+      if bufname('') !~ "^NERD_tree_"
+        :NERDTreeToggle
+      endif
+    endif
+  endfunction
+
+  noremap <silent> <F9> :NERDTreeFind<cr>
+  nnoremap <silent> <C-n> :call FocusOrCloseNERDTree()<cr>
   let g:NERDTreeShowHidden=1
   let g:NERDTreeStatusline="%f"
   let g:NERDTreeWinPos="left"
-  let g:NERDTreeWinSize=40
+  "let g:NERDTreeWinSize=40
   let NERDTreeIgnore = ['\.pyc$', '__pycache__', '.swp']
   " - Close vim if the only window left is a NERDTree
   autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
@@ -448,10 +504,6 @@ if exists('have_easyclip')
   " vim-easyclip
   nnoremap gm m
   let g:EasyClipAlwaysMoveCursorToEndOfPaste = 1
-endif
-
-if exists('have_gitgutter')
-  let g:gitgutter_async = 0
 endif
 
 if exists('have_ycm')
@@ -464,8 +516,6 @@ if exists('have_ycm')
   nnoremap <silent> <Leader>yt :YcmCompleter GetType<cr>
   nnoremap <silent> <Leader>yd :YcmCompleter GetDoc<cr>
   nnoremap <silent> <Leader>yx :YcmCompleter FixIt<cr>
-
-  let g:ycm_enable_diagnostic_signs = 0  " Disable diagnostics when ALE is enabled for C and C++
 endif
 
 if exists('have_rtags')
@@ -500,6 +550,10 @@ if exists('have_ale')
   " let g:ale_cpp_clang_options = '-std=c++14 -Wall -Wextra -Werror -fexceptions -DNDEBUG'
   " set statusline+=%{ALEGetStatusLine()}
   " let g:ale_statusline_format = ['⨉ %d', '⚠ %d', '⬥ ok']
+
+  if exists('have_ycm') && has_key(g:ale_linters, 'cpp')
+    let g:ycm_enable_diagnostic_signs = 0  " Disable diagnostics when ALE is enabled for C and C++
+  endif
 endif
 
 if exists('have_ack')
