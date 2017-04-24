@@ -20,7 +20,15 @@
 " Plugin management
 "=======================================
 
-let plugin_categories = ['ext', 'dev', 'dev_ext', 'col', 'misc']
+let plugin_categories = ['basic',
+                       \ 'textsearch',
+                       \ 'filesearch',
+                       \ 'ui_additions',
+                       \ 'copypaste',
+                       \ 'devel',
+                       \ 'devel_ext',
+                       \ 'colorschemes',
+                       \ 'misc']
 let faster_redraw = 0
 
 " Bootstrap vim-plug, if not already present
@@ -45,85 +53,96 @@ function! BuildYCM(info)  " See https://github.com/junegunn/vim-plug
 endfunction
 
 call plug#begin()
-" Basic plugins
-Plug 'drmikehenry/vim-fixkey'         " Permits mapping more classes of characters (e.g. <Alt-?>)
-Plug 'tpope/vim-eunuch'               " Syntactic sugar for some UNIX shell commands
-Plug 'tpope/vim-repeat'               " Remaps . such that plugin maps can use it
-Plug 'tpope/vim-surround'             " 'surrounding' motion
-Plug 'tpope/vim-unimpaired'           " Provide pairs of mappings for []
-Plug 'bronson/vim-visual-star-search' " Lets * and # perform search in visual mode
-Plug 'justinmk/vim-sneak'             " f-like search using two letters
-Plug 'moll/vim-bbye'                  " Adds :Bdelete command to close buffer but keep window
-Plug 'jeetsukumaran/vim-buffergator'  " Select, list and switch between buffers easily
-Plug 'Valloric/ListToggle'            " Easily display or hide quickfix or location list
-Plug 'ConradIrwin/vim-bracketed-paste'  " Automatically set paste mode
+if index(plugin_categories, 'basic') >= 0
+  " Basic plugins
+  Plug 'drmikehenry/vim-fixkey'          " Permits mapping more classes of characters (e.g. <Alt-?>)
+  Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
+  Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
+  Plug 'tpope/vim-surround'              " 'surrounding' motion
+  Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
+  Plug 'moll/vim-bbye'                   " Adds :Bdelete command to close buffer but keep window
+  Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
+  Plug 'godlygeek/tabular'               " Text alignment made easy
+  Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
+endif
 
-if index(plugin_categories, 'ext') >= 0
-  " Extended plugins
-  "Plug 'tpope/vim-sleuth'               " Adjust indentation settings automatically
-  "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
+if index(plugin_categories, 'textsearch') >= 0
+  Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
+  Plug 'justinmk/vim-sneak'              " f-like search using two letters
+endif
+
+if index(plugin_categories, 'filesearch') >= 0
   "Plug 'ctrlpvim/ctrlp.vim'             " Fuzzy file finder
-  Plug 'vim-airline/vim-airline'        " Status/tabline
-  Plug 'vim-airline/vim-airline-themes' " Themes for vim-airline
+  "let have_ctrlp = 1
   Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
   Plug 'junegunn/fzf.vim'
-  Plug 'mileszs/ack.vim'                " Wrapper for ack (grep-like tool)
+  let have_fzf = 1
   Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
   Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
-  Plug 'mhinz/vim-startify'             " A fancy start screen
-  Plug 'godlygeek/tabular'              " Text alignment made easy
-  Plug 'itspriddle/vim-stripper'        " Strip trailing whitespace on save
-  Plug 'svermeulen/vim-easyclip'        " Improved clipboard functionality
-  "let have_yankstack = 1
-  "let have_ctrlp = 1
-  let have_airline = 1
-  let have_fzf = 1
-  let have_ack = 1
   let have_nerdtree = 1
+  Plug 'mileszs/ack.vim'                 " Wrapper for ack (grep-like tool)
+  let have_ack = 1
+endif
+
+if index(plugin_categories, 'ui_additions') >= 0
+  Plug 'vim-airline/vim-airline'         " Status/tabline
+  Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
+  let have_airline = 1
+  Plug 'mhinz/vim-startify'              " A fancy start screen
+  Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
+  Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
+endif
+
+if index(plugin_categories, 'copypaste') >= 0
+  " Extended plugins
+  "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
+  "let have_yankstack = 1
+  Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
   let have_easyclip = 1
 endif
 
-if index(plugin_categories, 'dev') >= 0
+if index(plugin_categories, 'devel') >= 0
   " Basic development plugins
-  Plug 'scrooloose/nerdcommenter'       " Commenting code
+  "Plug 'tpope/vim-sleuth'               " Adjust indentation settings automatically
   "Plug 'jreybert/vimagit'               " Git wrapper
-  Plug 'tpope/vim-fugitive'             " Git wrapper
-  Plug 'vim-gitgutter'                  " Show visual git diff in the gutter
-  Plug 'nacitar/a.vim'                  " Easy switching between header and translation unit
-  Plug 'airblade/vim-rooter'            " Changes working directory to project root
+  Plug 'scrooloose/nerdcommenter'        " Commenting code
+  Plug 'tpope/vim-fugitive'              " Git wrapper
+  Plug 'nacitar/a.vim'                   " Easy switching between header and translation unit
+  Plug 'airblade/vim-rooter'             " Changes working directory to project root
+  Plug 'vim-gitgutter'                   " Show visual git diff in the gutter
   let have_gitgutter = 1
 endif
 
-if index(plugin_categories, 'dev_ext') >= 0
+if index(plugin_categories, 'devel_ext') >= 0
   " Extended bevelopment plugins
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
-  Plug 'jmcantrell/vim-virtualenv'      " Improved working with virtualenvs
+  Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
   if (v:version < 800)
-    Plug 'vim-syntastic/syntastic'        " Syntax checking for many languages
+    Plug 'vim-syntastic/syntastic'       " Syntax checking for many languages
     let have_syntastic = 1
   else
-    Plug 'w0rp/ale'                       " Asynchronous Lint Engine
+    Plug 'w0rp/ale'                      " Asynchronous Lint Engine
     let have_ale = 1
   endif
   if (has("unix") || has("macunix")) && !has("win32unix")
     Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
+    let have_ycm = 1
   endif
   Plug 'lyuts/vim-rtags'
-  let have_ycm = 1
   let have_rtags = 1
 endif
 
-if index(plugin_categories, 'col') >= 0
+if index(plugin_categories, 'colorschemes') >= 0
   " Color schemes
   Plug 'tomasr/molokai'
   Plug 'sjl/badwolf'
   Plug 'nanotech/jellybeans.vim'
-  Plug 'chriskempson/base16-vim'        " Set of color schemes; see https://chriskempson.github.io/base16/
+  Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
 if index(plugin_categories, 'misc') >= 0
-  Plug 'junegunn/limelight.vim'
-  Plug 'junegunn/goyo.vim'
+  Plug 'junegunn/limelight.vim'          " Paragraph-based syntax highlighting
+  Plug 'junegunn/goyo.vim'               " Distraction-free editing
   let g:goyo_width = 120
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
@@ -131,7 +150,7 @@ endif
 
 if index(plugin_categories, 'annoying') >= 0
   " Annoying plugins
-  Plug 'takac/vim-hardtime'             " Enables a hard time
+  Plug 'takac/vim-hardtime'              " Enables a hard time
   let have_hardtime = 1
 endif
 call plug#end()
@@ -171,6 +190,11 @@ set expandtab       " Tabs are spaces
 set smartindent
 set autoindent
 
+autocmd Filetype python setlocal softtabstop=4 shiftwidth=4 colorcolumn=120
+autocmd Filetype cpp    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120
+autocmd Filetype cmake  setlocal softtabstop=4 shiftwidth=4 colorcolumn=120
+autocmd Filetype vim    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120 textwidth=120
+
 " Searching
 "=======================================
 
@@ -187,7 +211,7 @@ set infercase           " Infer case for completions
 syntax enable           " Enable syntax highlighting
 set background=dark     " Dark background color
 
-if index(plugin_categories, 'col') >= 0
+if index(plugin_categories, 'colorschemes') >= 0
   " Use the base16 color schemes, with a fallback to 'molokai'.
   " To make this work, follow the instructions here: https://github.com/chriskempson/base16-shell
   if filereadable(expand("~/.vimrc_background"))
@@ -205,11 +229,6 @@ set backspace=eol,start,indent  " Configure backspace so it acts as it should ac
 set laststatus=2        " Always show the status line
 set scrolloff=5         " Set 5 lines to the cursor - when moving vertically using j/k
 set hidden              " A buffer becomes hidden when it is abandoned
-set number              " Show line numbers
-if !faster_redraw
-  set relativenumber      " Show relative line numbers
-  set cursorline          " Highlight current line
-endif
 set showcmd             " Show command in bottom bar
 set ruler               " Always show current position
 set nowrap              " Don't wrap overly long lines
@@ -223,6 +242,12 @@ set splitbelow          " New horizontal splits open below
 set splitright          " New vertical splits open to the right
 set foldenable          " Enable folding
 set synmaxcol=300       " Highlight up to 300 columns
+
+set number              " Show line numbers
+if !faster_redraw
+  set relativenumber      " Show relative line numbers
+  set cursorline          " Highlight current line
+endif
 
 " Allow mapping of meta/option key in MacVim
 if has("macunix") && has("gui_running")
@@ -242,14 +267,6 @@ set t_ut=
 if !has('gui_running')
   set t_Co=256
 endif
-
-" File type specific settings
-"=======================================
-
-autocmd Filetype python setlocal ts=4 sw=4 expandtab colorcolumn=120
-autocmd Filetype cpp    setlocal colorcolumn=120
-autocmd Filetype cmake  setlocal colorcolumn=120
-autocmd Filetype vim    setlocal colorcolumn=120
 
 " tmux specific settings
 "=======================================
@@ -287,6 +304,19 @@ function! LineHome()
     execute "normal 0"
   endif
   return ""
+endfunction
+
+function! ToggleTextWidth()
+  if &textwidth == 0
+    let x = 80
+  elseif &textwidth == 80
+    let x = 120
+  elseif &textwidth == 120
+    let x = 0
+  endif
+  let &textwidth = x
+  let &colorcolumn = x
+  echo "Set textwidth and colorcolumn to" x
 endfunction
 
 " Key mappings
@@ -396,6 +426,9 @@ noremap <silent> <F8> :SyntasticReset<cr>
 
 " F10: Strip trailing whitespaces
 " nnoremap <silent> <F10> :call Preserve("%s/\\s\\+$//e")<cr>
+
+" F10: Toggle text width
+noremap <silent> <F10> :call ToggleTextWidth()<cr>
 
 " F11: Switch gvim to fullscreen (requires wmctrl)
 if has("unix") && has("gui_running")
