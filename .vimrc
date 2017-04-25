@@ -143,9 +143,7 @@ endif
 if index(plugin_categories, 'misc') >= 0
   Plug 'junegunn/limelight.vim'          " Paragraph-based syntax highlighting
   Plug 'junegunn/goyo.vim'               " Distraction-free editing
-  let g:goyo_width = 120
-  autocmd! User GoyoEnter Limelight
-  autocmd! User GoyoLeave Limelight!
+  let have_goyo = 1
 endif
 
 if index(plugin_categories, 'annoying') >= 0
@@ -175,8 +173,6 @@ endif
 set swapfile
 set nobackup
 set nowritebackup
-
-set clipboard=unnamed
 
 " Tabbing and indentation
 "=======================================
@@ -601,6 +597,12 @@ if exists('have_ctrlp')
   " CtrlP
   " - Start CtrlP in mixed mode
   let g:ctrlp_cmd = 'CtrlPMixed'
+endif
+
+if exists('have_goyo')
+  let g:goyo_width = 120
+  autocmd! User GoyoEnter Limelight
+  autocmd! User GoyoLeave Limelight!
 endif
 
 if exists('have_hardtime')
