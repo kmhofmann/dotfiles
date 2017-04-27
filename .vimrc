@@ -54,16 +54,16 @@ endfunction
 
 call plug#begin()
 if index(plugin_categories, 'basic') >= 0
-  " Basic plugins
   Plug 'drmikehenry/vim-fixkey'          " Permits mapping more classes of characters (e.g. <Alt-?>)
+  Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
   Plug 'tpope/vim-surround'              " 'surrounding' motion
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
-  Plug 'moll/vim-bbye'                   " Adds :Bdelete command to close buffer but keep window
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
   Plug 'godlygeek/tabular'               " Text alignment made easy
-  Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
+  Plug 'moll/vim-bbye'                   " Adds :Bdelete command to close buffer but keep window
+  let have_bbye = 1
 endif
 
 if index(plugin_categories, 'textsearch') >= 0
@@ -72,11 +72,14 @@ if index(plugin_categories, 'textsearch') >= 0
 endif
 
 if index(plugin_categories, 'filesearch') >= 0
-  "Plug 'ctrlpvim/ctrlp.vim'             " Fuzzy file finder
-  "let have_ctrlp = 1
-  Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-  Plug 'junegunn/fzf.vim'
-  let have_fzf = 1
+  if !has("win32")
+    Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+    Plug 'junegunn/fzf.vim'
+    let have_fzf = 1
+  else
+    Plug 'ctrlpvim/ctrlp.vim'             " Fuzzy file finder
+    let have_ctrlp = 1
+  endif
   Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
   Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
   let have_nerdtree = 1
@@ -88,13 +91,16 @@ if index(plugin_categories, 'ui_additions') >= 0
   Plug 'vim-airline/vim-airline'         " Status/tabline
   Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
   let have_airline = 1
-  Plug 'mhinz/vim-startify'              " A fancy start screen
   Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
+  let have_buffergator = 1
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
+  let have_listtoggle = 1
+  Plug 'mbbill/undotree'                 " Visualize and act upon undo tree
+  let have_undotree = 1
+  Plug 'mhinz/vim-startify'              " A fancy start screen
 endif
 
 if index(plugin_categories, 'copypaste') >= 0
-  " Extended plugins
   "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
   "let have_yankstack = 1
   Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
@@ -102,7 +108,6 @@ if index(plugin_categories, 'copypaste') >= 0
 endif
 
 if index(plugin_categories, 'devel') >= 0
-  " Basic development plugins
   "Plug 'tpope/vim-sleuth'               " Adjust indentation settings automatically
   "Plug 'jreybert/vimagit'               " Git wrapper
   Plug 'scrooloose/nerdcommenter'        " Commenting code
@@ -114,7 +119,6 @@ if index(plugin_categories, 'devel') >= 0
 endif
 
 if index(plugin_categories, 'devel_ext') >= 0
-  " Extended bevelopment plugins
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
   Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
   if (v:version < 800)
@@ -124,7 +128,7 @@ if index(plugin_categories, 'devel_ext') >= 0
     Plug 'w0rp/ale'                      " Asynchronous Lint Engine
     let have_ale = 1
   endif
-  if (has("unix") || has("macunix")) && !has("win32unix")
+  if !has("win32")
     Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
     let have_ycm = 1
   endif
@@ -133,7 +137,6 @@ if index(plugin_categories, 'devel_ext') >= 0
 endif
 
 if index(plugin_categories, 'colorschemes') >= 0
-  " Color schemes
   Plug 'tomasr/molokai'
   Plug 'sjl/badwolf'
   Plug 'nanotech/jellybeans.vim'
@@ -147,7 +150,6 @@ if index(plugin_categories, 'misc') >= 0
 endif
 
 if index(plugin_categories, 'annoying') >= 0
-  " Annoying plugins
   Plug 'takac/vim-hardtime'              " Enables a hard time
   let have_hardtime = 1
 endif
@@ -168,6 +170,10 @@ set ffs=unix,dos,mac  " Use Unix as the standard file type
 if has("unix") || has("macunix")
   set backupdir=$HOME/.vim/backup//,.
   set directory=$HOME/.vim/swp//,.
+endif
+if has("persistent_undo")
+  set undodir=$HOME/.vim/undo/
+  set undofile
 endif
 
 set swapfile
@@ -264,16 +270,15 @@ if !has('gui_running')
   set t_Co=256
 endif
 
-" tmux specific settings
-"=======================================
-
 " Allow cursor change in tmux mode
-if exists('$TMUX')
-    let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
-    let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
+if empty($TMUX)
+  let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+  let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+  let &t_SR = "\<Esc>]50;CursorShape=2\x7"
 else
-    let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-    let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+  let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
+  let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
+  let &t_SR = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=2\x7\<Esc>\\"
 endif
 
 " Functions for later use
@@ -443,40 +448,25 @@ let loaded_matchparen = 1
 " Expand '%%' to path of current file (see Practical Vim, pg. 101)
 cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
-if exists('have_yankstack')
-  " Yankstack
-  if has("macunix") && !has("gui_running")
-    " Option-p:
-    nmap π <Plug>yankstack_substitute_older_paste
-    " Option-P:
-    nmap ∏ <Plug>yankstack_substitute_newer_paste
-  endif
-  " Need to omit 's', 'S' from being remapped because of vim-sneak
-  let g:yankstack_yank_keys = ['c', 'C', 'd', 'D', 'x', 'X', 'y', 'Y']
-  call yankstack#setup()  " needs to be called before remapping Y
-endif
-
-if !exists('have_easyclip')
-  " Map Y to behave like C, D
-  nmap Y y$
-endif
-
 " Plugin configurations
 "=======================================
 
-" ListToggle
-" - Height of the location list window
-let g:lt_height = 10
+if exists('have_listtoggle')
+  " - Height of the location list window
+  let g:lt_height = 10
+endif
 
-" buffergator
-" - Width of the buffergator window
-let g:buffergator_split_size = 50
+if exists('have_buffergator')
+  " - Width of the buffergator window
+  let g:buffergator_split_size = 50
+endif
 
 " Quick buffer deletion with <Space><Backspace> (using vim-bbye)
-nnoremap <silent> <leader><Bs> :Bdelete<cr>
+if exists('have_bbye')
+  nnoremap <silent> <leader><Bs> :Bdelete<cr>
+endif
 
 if exists('have_airline')
-  " vim-airline
   let airline_themes = {
       \'base16-solarized-dark': 'base16_solarized',
       \'base16-monokai': 'base16_monokai'}
@@ -490,7 +480,6 @@ if exists('have_airline')
 endif
 
 if exists('have_fzf')
-  " fzf.vim
   if !exists('have_ctrlp')
     nnoremap <silent> <C-p> :FZF<cr>
   endif
@@ -500,8 +489,19 @@ if exists('have_fzf')
   nnoremap <silent> <leader>fh :History<CR>
 endif
 
+if exists('have_ctrlp')
+  " - Start CtrlP in mixed mode
+  let g:ctrlp_cmd = 'CtrlPMixed'
+endif
+
+if exists('have_ack')
+  " - Use ag with :Ack, if available
+  if executable('ag')
+    let g:ackprg = 'ag --vimgrep'
+  endif
+endif
+
 if exists('have_nerdtree')
-  " NERDTree
   function! FocusOrCloseNERDTree()
     if bufname('') =~ "^NERD_tree_"
       :NERDTreeToggle
@@ -529,14 +529,31 @@ if exists('have_nerdtree')
   autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 endif
 
+if exists('have_undotree')
+  nnoremap <silent> <Leader>u :UndotreeToggle<cr>
+endif
+
+if exists('have_yankstack')
+  if has("macunix") && !has("gui_running")
+    " Option-p:
+    nmap π <Plug>yankstack_substitute_older_paste
+    " Option-P:
+    nmap ∏ <Plug>yankstack_substitute_newer_paste
+  endif
+  " Need to omit 's', 'S' from being remapped because of vim-sneak
+  let g:yankstack_yank_keys = ['c', 'C', 'd', 'D', 'x', 'X', 'y', 'Y']
+  call yankstack#setup()  " needs to be called before remapping Y (see !have_easyclip section)
+endif
+
 if exists('have_easyclip')
-  " vim-easyclip
   nnoremap gm m
   let g:EasyClipAlwaysMoveCursorToEndOfPaste = 1
+else
+  " Map Y to behave like C, D
+  nmap Y y$
 endif
 
 if exists('have_ycm')
-  " YouCompleteMe
   let g:ycm_confirm_extra_conf = 0
   nnoremap <silent> <Leader>yg :YcmCompleter GoTo<cr>
   nnoremap <silent> <Leader>yi :YcmCompleter GoToInclude<cr>>
@@ -548,13 +565,11 @@ if exists('have_ycm')
 endif
 
 if exists('have_rtags')
-  " vim-rtags
   let g:rtagsAutoLaunchRdm = 1
   let g:rtagsExcludeSysHeaders = 1
 endif
 
 if exists('have_syntastic')
-  " Syntastic
   let g:syntastic_mode_map = { 'mode': 'passive' }  " Disable checking unless user-requested
   let g:syntastic_always_populate_loc_list = 1  " Automatically populate location list
   let g:syntastic_auto_loc_list = 1  " Automatically open/close location list
@@ -565,7 +580,6 @@ if exists('have_syntastic')
 endif
 
 if exists('have_ale')
-  " ALE
   " - Enable some linters. Note C and C++ are missing - support isn't that great yet
   let g:ale_linters = {
         \ 'json': 'all',
@@ -585,20 +599,6 @@ if exists('have_ale')
   endif
 endif
 
-if exists('have_ack')
-  " Ack
-  " - Use ag with :Ack, if available
-  if executable('ag')
-    let g:ackprg = 'ag --vimgrep'
-  endif
-endif
-
-if exists('have_ctrlp')
-  " CtrlP
-  " - Start CtrlP in mixed mode
-  let g:ctrlp_cmd = 'CtrlPMixed'
-endif
-
 if exists('have_goyo')
   let g:goyo_width = 120
   autocmd! User GoyoEnter Limelight
@@ -606,7 +606,6 @@ if exists('have_goyo')
 endif
 
 if exists('have_hardtime')
-  " vim-hardtime
   let g:hardtime_default_on = 1
   let g:hardtime_ignore_quickfix = 1
   let g:hardtime_allow_different_key = 1
