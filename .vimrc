@@ -62,7 +62,7 @@ if index(plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
   Plug 'godlygeek/tabular'               " Text alignment made easy
-  Plug 'moll/vim-bbye'                   " Adds :Bdelete command to close buffer but keep window
+  Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let have_bbye = 1
 endif
 
@@ -77,13 +77,13 @@ if index(plugin_categories, 'filesearch') >= 0
     Plug 'junegunn/fzf.vim'
     let have_fzf = 1
   else
-    Plug 'ctrlpvim/ctrlp.vim'             " Fuzzy file finder
+    Plug 'ctrlpvim/ctrlp.vim', { 'on': ['CtrlP', 'CtrlPBuffer', 'CtrlPMRU', 'CtrlPMixed'] }  " Fuzzy file finder
     let have_ctrlp = 1
   endif
   Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
   Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
   let have_nerdtree = 1
-  Plug 'mileszs/ack.vim'                 " Wrapper for ack (grep-like tool)
+  Plug 'mileszs/ack.vim', { 'on': ['Ack'] }  " Wrapper for ack (grep-like tool)
   let have_ack = 1
 endif
 
@@ -95,7 +95,7 @@ if index(plugin_categories, 'ui_additions') >= 0
   let have_buffergator = 1
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
   let have_listtoggle = 1
-  Plug 'mbbill/undotree'                 " Visualize and act upon undo tree
+  Plug 'mbbill/undotree', { 'on': ['UndotreeToggle'] }  " Visualize and act upon undo tree
   let have_undotree = 1
   Plug 'mhinz/vim-startify'              " A fancy start screen
 endif
@@ -112,7 +112,7 @@ if index(plugin_categories, 'devel') >= 0
   "Plug 'jreybert/vimagit'               " Git wrapper
   Plug 'scrooloose/nerdcommenter'        " Commenting code
   Plug 'tpope/vim-fugitive'              " Git wrapper
-  Plug 'nacitar/a.vim'                   " Easy switching between header and translation unit
+  Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'vim-gitgutter'                   " Show visual git diff in the gutter
   let have_gitgutter = 1
@@ -140,12 +140,13 @@ if index(plugin_categories, 'colorschemes') >= 0
   Plug 'tomasr/molokai'
   Plug 'sjl/badwolf'
   Plug 'nanotech/jellybeans.vim'
+  Plug 'euclio/vim-nocturne'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
 if index(plugin_categories, 'misc') >= 0
-  Plug 'junegunn/limelight.vim'          " Paragraph-based syntax highlighting
-  Plug 'junegunn/goyo.vim'               " Distraction-free editing
+  Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
+  Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
   let have_goyo = 1
 endif
 
