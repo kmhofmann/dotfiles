@@ -66,6 +66,10 @@ if index(mvrc_plugin_categories, 'basic') >= 0
   Plug 'godlygeek/tabular'               " Text alignment made easy
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let mvrc_have_bbye = 1
+<<<<<<< Updated upstream
+=======
+  Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
+>>>>>>> Stashed changes
 endif
 
 if index(mvrc_plugin_categories, 'textsearch') >= 0
@@ -235,7 +239,12 @@ syntax enable           " Enable syntax highlighting
 set background=dark     " Dark background color
 
 if !has("gui_running")
+<<<<<<< Updated upstream
   set termguicolors
+=======
+  set term=screen-256color
+  set t_Co=256
+>>>>>>> Stashed changes
 endif
 
 if index(mvrc_plugin_categories, 'colorschemes') >= 0
