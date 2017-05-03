@@ -11,7 +11,7 @@
 "   bootstrapped. Then, issue ':PlugInstall' as an Ex command to install the
 "   specified plugins.
 " * You may alter the list of plugins on a higher level by editing the
-"   'mvrc_plugin_categories' list below. For example, you might not want to
+"   's:plugin_categories' list below. For example, you might not want to
 "   install the extended development plugins on an embedded device." After
 "   installation of the plugins, just restart vim.
 " * All mentioned plugins will be installed from GitHub. Check their respective
@@ -20,7 +20,7 @@
 " Plugin management
 "=======================================
 
-let mvrc_plugin_categories = ['basic',
+let s:plugin_categories = ['basic',
                             \ 'textsearch',
                             \ 'filesearch',
                             \ 'ui_additions',
@@ -30,8 +30,8 @@ let mvrc_plugin_categories = ['basic',
                             \ 'google',
                             \ 'misc',
                             \ 'colorschemes']
-let mvrc_faster_redraw = 0
-let mvrc_show_airline_tabs = 0
+let s:faster_redraw = 0
+let s:show_airline_tabs = 0
 
 " Bootstrap vim-plug, if not already present
 if has("unix") || has("macunix")
@@ -55,7 +55,7 @@ function! BuildYCM(info)  " See https://github.com/junegunn/vim-plug
 endfunction
 
 call plug#begin()
-if index(mvrc_plugin_categories, 'basic') >= 0
+if index(s:plugin_categories, 'basic') >= 0
   Plug 'drmikehenry/vim-fixkey'          " Permits mapping more classes of characters (e.g. <Alt-?>)
   Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
@@ -65,54 +65,55 @@ if index(mvrc_plugin_categories, 'basic') >= 0
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
   Plug 'godlygeek/tabular'               " Text alignment made easy
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
-  let mvrc_have_bbye = 1
+  let s:have_bbye = 1
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
+  let s:have_localvimrc = 1
 endif
 
-if index(mvrc_plugin_categories, 'textsearch') >= 0
+if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
   Plug 'justinmk/vim-sneak'              " f-like search using two letters
 endif
 
-if index(mvrc_plugin_categories, 'filesearch') >= 0
+if index(s:plugin_categories, 'filesearch') >= 0
   if !has("win32")
     Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
     Plug 'junegunn/fzf.vim'
-    let mvrc_have_fzf = 1
+    let s:have_fzf = 1
   else
     Plug 'ctrlpvim/ctrlp.vim', { 'on': ['CtrlP', 'CtrlPBuffer', 'CtrlPMRU', 'CtrlPMixed'] }  " Fuzzy file finder
-    let mvrc_have_ctrlp = 1
+    let s:have_ctrlp = 1
   endif
   Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
   Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
-  let mvrc_have_nerdtree = 1
+  let s:have_nerdtree = 1
   Plug 'mileszs/ack.vim', { 'on': ['Ack'] }  " Wrapper for ack (grep-like tool)
-  let mvrc_have_ack = 1
+  let s:have_ack = 1
 endif
 
-if index(mvrc_plugin_categories, 'ui_additions') >= 0
+if index(s:plugin_categories, 'ui_additions') >= 0
   Plug 'vim-airline/vim-airline'         " Status/tabline
   Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
-  let mvrc_have_airline = 1
+  let s:have_airline = 1
   Plug 'bling/vim-bufferline'
-  let mvrc_have_bufferline = 1
+  let s:have_bufferline = 1
   Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
-  let mvrc_have_buffergator = 1
+  let s:have_buffergator = 1
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
-  let mvrc_have_listtoggle = 1
+  let s:have_listtoggle = 1
   Plug 'mbbill/undotree', { 'on': ['UndotreeToggle'] }  " Visualize and act upon undo tree
-  let mvrc_have_undotree = 1
+  let s:have_undotree = 1
   Plug 'mhinz/vim-startify'              " A fancy start screen
 endif
 
-if index(mvrc_plugin_categories, 'copypaste') >= 0
+if index(s:plugin_categories, 'copypaste') >= 0
   "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
-  "let mvrc_have_yankstack = 1
+  "let s:have_yankstack = 1
   Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
-  let mvrc_have_easyclip = 1
+  let s:have_easyclip = 1
 endif
 
-if index(mvrc_plugin_categories, 'devel') >= 0
+if index(s:plugin_categories, 'devel') >= 0
   "Plug 'tpope/vim-sleuth'               " Adjust indentation settings automatically
   "Plug 'jreybert/vimagit'               " Git wrapper
   Plug 'scrooloose/nerdcommenter'        " Commenting code
@@ -120,43 +121,47 @@ if index(mvrc_plugin_categories, 'devel') >= 0
   Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'airblade/vim-gitgutter'          " Show visual git diff in the gutter
-  let mvrc_have_gitgutter = 1
+  let s:have_gitgutter = 1
 endif
 
-if index(mvrc_plugin_categories, 'devel_ext') >= 0
+if index(s:plugin_categories, 'devel_ext') >= 0
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
   Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
-  "if (v:version < 800)
+  if (v:version < 800)
     Plug 'vim-syntastic/syntastic'       " Syntax checking for many languages
-    let mvrc_have_syntastic = 1
-  "else
-  "  Plug 'w0rp/ale'                      " Asynchronous Lint Engine
-  "  let mvrc_have_ale = 1
-  "endif
+    let s:have_syntastic = 1
+  else
+    Plug 'w0rp/ale'                      " Asynchronous Lint Engine
+    let s:have_ale = 1
+  endif
   if !has("win32")
     Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
-    let mvrc_have_ycm = 1
+    let s:have_ycm = 1
   endif
   Plug 'lyuts/vim-rtags'
-  let mvrc_have_rtags = 1
+  let s:have_rtags = 1
 endif
 
-if index(mvrc_plugin_categories, 'google') >= 0
+if index(s:plugin_categories, 'google') >= 0
   Plug 'google/vim-searchindex'
   Plug 'google/vim-maktaba'
   Plug 'google/vim-glaive'
-  let mvrc_have_glaive = 1
-  Plug 'google/vim-codefmt'
-  let mvrc_have_codefmt = 1
+  let s:have_glaive = 1
+  Plug 'google/vim-codefmt'              " Trigger code formatting engines
+  let s:have_codefmt = 1
 endif
 
-if index(mvrc_plugin_categories, 'misc') >= 0
+if index(s:plugin_categories, 'misc') >= 0
   Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
   Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
-  let mvrc_have_goyo = 1
+  let s:have_goyo = 1
+  if has("macunix")
+    Plug 'junegunn/vim-emoji'
+    let s:have_emoji = 1
+  endif
 endif
 
-if index(mvrc_plugin_categories, 'colorschemes') >= 0
+if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'sjl/badwolf'
   Plug 'tomasr/molokai'
   Plug 'euclio/vim-nocturne'
@@ -165,18 +170,19 @@ if index(mvrc_plugin_categories, 'colorschemes') >= 0
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
-if index(mvrc_plugin_categories, 'annoying') >= 0
+if index(s:plugin_categories, 'annoying') >= 0
   Plug 'takac/vim-hardtime'              " Enables a hard time
-  let mvrc_have_hardtime = 1
+  let s:have_hardtime = 1
 endif
 call plug#end()
 
-if exists('mvrc_have_codefmt')
+if exists('s:have_codefmt')
   call glaive#Install()
 endif
-if exists('mvrc_have_codefmt')
+if exists('s:have_codefmt')
   Glaive codefmt plugin[mappings]
 endif
+
 " General
 "=======================================
 
@@ -240,7 +246,7 @@ if !has("gui_running")
   set t_Co=256
 endif
 
-if index(mvrc_plugin_categories, 'colorschemes') >= 0
+if index(s:plugin_categories, 'colorschemes') >= 0
   " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
   if !has("gui_running") && filereadable(expand("~/.vimrc_background"))
     let base16colorspace=256
@@ -272,7 +278,7 @@ set foldenable          " Enable folding
 set synmaxcol=300       " Highlight up to 300 columns
 
 set number              " Show line numbers
-if !mvrc_faster_redraw
+if !s:faster_redraw
   set relativenumber      " Show relative line numbers
   set cursorline          " Highlight current line
 endif
@@ -301,19 +307,6 @@ endif
 " Functions for later use
 "=======================================
 
-" See https://technotales.wordpress.com/2010/03/31/preserve-a-vim-function-that-keeps-your-state
-function! Preserve(command)
-  " Preparation: save last search, and cursor position.
-  let _s=@/
-  let l = line(".")
-  let c = col(".")
-  " Do the business:
-  execute a:command
-  " Clean up: restore previous search history, and cursor position
-  let @/=_s
-  call cursor(l, c)
-endfunction
-
 " Jump to first non-whitespace on line, or to begining of line if already at first non-whitespace
 function! LineHome()
   let x = col('.')
@@ -337,6 +330,12 @@ function! ToggleTextWidth()
   echo "Set textwidth and colorcolumn to" x
 endfunction
 
+function! CloseCurrentWindow()
+  if winnr("$") > 1
+    execute "quit"
+  endif
+endfunction
+
 " Key mappings
 "=======================================
 
@@ -353,7 +352,7 @@ noremap <S-k> <nop>
 " Allow the . to execute once for each line of a visual selection
 vnoremap . :normal .<cr>
 
-if !exists('mvrc_have_easyclip')
+if !exists('s:have_easyclip')
   " Paste from yank register with <leader>p/P
   noremap <leader>p "0p
   noremap <leader>P "0P
@@ -408,7 +407,7 @@ nnoremap <silent> <leader>a :b#<cr>
 
 " Shortcuts for window handling
 "nnoremap <leader>r <C-w>r  " rotate windows
-nnoremap <leader>w <C-w>q  " close current window
+nnoremap <leader>w :call CloseCurrentWindow()<cr>:echo<cr>
 nnoremap <leader>o <C-w>o  " make current one the only window
 
 " Disable highlighting of search results
@@ -433,27 +432,14 @@ noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
 " F6: Switch case sensitivity
 noremap <F6> :set ignorecase!<cr>:set ignorecase?<cr>
 
-if exists('mvrc_have_syntastic')
-  " F7: Syntastic check
-  noremap <silent> <F7> :SyntasticCheck<cr>
-
-  " F8: Syntastic reset
-  noremap <silent> <F8> :SyntasticReset<cr>
-endif
-
-" F9: Find file in NERDTree
-" (See below)
-
-" F10: Strip trailing whitespaces
-" nnoremap <silent> <F10> :call Preserve("%s/\\s\\+$//e")<cr>
+" F7: Syntastic check (see below)
+" F8: Syntastic reset (see below)
+" F9: Find file in NERDTree (see below)
 
 " F10: Toggle text width
 noremap <silent> <F10> :call ToggleTextWidth()<cr>
 
-" F11: Switch gvim to fullscreen (requires wmctrl)
-if has("unix") && has("gui_running")
-  noremap <silent> <F11> :call system("wmctrl -ir " . v:windowid . " -b toggle,fullscreen")<cr>
-endif
+" F11: FREE
 
 " F12: Source .vimrc
 noremap <silent> <F12> :source $MYVIMRC<cr>
@@ -470,12 +456,12 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 " Plugin configurations
 "=======================================
 
-if exists('mvrc_have_listtoggle')
+if exists('s:have_listtoggle')
   " - Height of the location list window
   let g:lt_height = 10
 endif
 
-if exists('mvrc_have_buffergator')
+if exists('s:have_buffergator')
   " - Width of the buffergator window
   let g:buffergator_viewport_split_policy = "B"
   let g:buffergator_split_size = 16
@@ -484,36 +470,41 @@ if exists('mvrc_have_buffergator')
   let g:buffergator_suppress_mru_switching_keymaps = 1
 endif
 
-" Quick buffer deletion with <Space><Backspace> (using vim-bbye)
-if exists('mvrc_have_bbye')
+if exists('s:have_bbye')
+  " Quick buffer deletion with <Space><Backspace> (using vim-bbye)
   nnoremap <silent> <leader><Bs> :Bdelete<cr>
 endif
 
-if exists('mvrc_have_airline')
+if exists('s:have_localvimrc')
+  let g:localvimrc_ask = 0
+  let g:localvimrc_persistent = 1
+endif
+
+if exists('s:have_airline')
   let airline_themes = {
       \'base16-solarized-dark': 'base16_solarized',
       \'base16-monokai': 'base16_monokai'}
   if exists('g:colors_name') && has_key(airline_themes, g:colors_name)
     let g:airline_theme=airline_themes[g:colors_name]
   endif
-  if exists('mvrc_show_airline_tabs') && (mvrc_show_airline_tabs == 1)
+  if exists('s:show_airline_tabs') && (s:show_airline_tabs == 1)
     let g:airline#extensions#tabline#enabled = 1
     let g:airline#extensions#tabline#show_splits = 1
     let g:airline#extensions#tabline#show_tabs = 1
-    if !exists('mvrc_have_bufferline')
+    if !exists('s:have_bufferline')
       let g:airline#extensions#tabline#show_buffers = 1
     endif
   endif
 endif
 
-if exists('mvrc_have_bufferline')
-  if exists('mvrc_have_airline')
+if exists('s:have_bufferline')
+  if exists('s:have_airline')
     let g:bufferline_echo = 0
   endif
 endif
 
-if exists('mvrc_have_fzf')
-  if !exists('mvrc_have_ctrlp')
+if exists('s:have_fzf')
+  if !exists('s:have_ctrlp')
     nnoremap <silent> <C-p> :FZF<cr>
   endif
   nnoremap <silent> <leader>ff :Files<CR>
@@ -522,19 +513,19 @@ if exists('mvrc_have_fzf')
   nnoremap <silent> <leader>fh :History<CR>
 endif
 
-if exists('mvrc_have_ctrlp')
+if exists('s:have_ctrlp')
   " - Start CtrlP in mixed mode
   let g:ctrlp_cmd = 'CtrlPMixed'
 endif
 
-if exists('mvrc_have_ack')
+if exists('s:have_ack')
   " - Use ag with :Ack, if available
   if executable('ag')
     let g:ackprg = 'ag --vimgrep'
   endif
 endif
 
-if exists('mvrc_have_nerdtree')
+if exists('s:have_nerdtree')
   function! FocusOrCloseNERDTree()
     if bufname('') =~ "^NERD_tree_"
       :NERDTreeToggle
@@ -562,11 +553,11 @@ if exists('mvrc_have_nerdtree')
   autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 endif
 
-if exists('mvrc_have_undotree')
+if exists('s:have_undotree')
   nnoremap <silent> <Leader>u :UndotreeToggle<cr>
 endif
 
-if exists('mvrc_have_yankstack')
+if exists('s:have_yankstack')
   if has("macunix") && !has("gui_running")
     " Option-p:
     nmap π <Plug>yankstack_substitute_older_paste
@@ -575,10 +566,10 @@ if exists('mvrc_have_yankstack')
   endif
   " Need to omit 's', 'S' from being remapped because of vim-sneak
   let g:yankstack_yank_keys = ['c', 'C', 'd', 'D', 'x', 'X', 'y', 'Y']
-  call yankstack#setup()  " needs to be called before remapping Y (see !mvrc_have_easyclip section)
+  call yankstack#setup()  " needs to be called before remapping Y (see !s:have_easyclip section)
 endif
 
-if exists('mvrc_have_easyclip')
+if exists('s:have_easyclip')
   nnoremap gm m
   let g:EasyClipAlwaysMoveCursorToEndOfPaste = 1
 else
@@ -586,7 +577,7 @@ else
   nmap Y y$
 endif
 
-if exists('mvrc_have_ycm')
+if exists('s:have_ycm')
   let g:ycm_confirm_extra_conf = 0
   nnoremap <silent> <Leader>yg :YcmCompleter GoTo<cr>
   nnoremap <silent> <Leader>yi :YcmCompleter GoToInclude<cr>>
@@ -597,12 +588,14 @@ if exists('mvrc_have_ycm')
   nnoremap <silent> <Leader>yx :YcmCompleter FixIt<cr>
 endif
 
-if exists('mvrc_have_rtags')
+if exists('s:have_rtags')
   let g:rtagsAutoLaunchRdm = 1
   let g:rtagsExcludeSysHeaders = 1
 endif
 
-if exists('mvrc_have_syntastic')
+if exists('s:have_syntastic')
+  noremap <silent> <F7> :SyntasticCheck<cr>
+  noremap <silent> <F8> :SyntasticReset<cr>
   let g:syntastic_mode_map = { 'mode': 'passive' }  " Disable checking unless user-requested
   let g:syntastic_always_populate_loc_list = 1  " Automatically populate location list
   let g:syntastic_auto_loc_list = 1  " Automatically open/close location list
@@ -612,33 +605,38 @@ if exists('mvrc_have_syntastic')
   let g:syntastic_python_pylint_post_args="--max-line-length=120"
 endif
 
-if exists('mvrc_have_ale')
-  " - Enable some linters. Note C and C++ are missing - support isn't that great yet
+if exists('s:have_ale')
+  " - Enable some linters. Note that for proper C and C++ support, one should provide a .lvimrc file in the project
+  "   root directory, with the proper g:ale_c??_[clang|g++]_options settings.
   let g:ale_linters = {
         \ 'json': 'all',
         \ 'markdown': 'all',
-        \ 'python': 'all',
+        \ 'python': ['flake8'],
         \ 'tex': 'all',
         \ 'vim': 'all',
+        \ 'c': ['clang', 'gcc'],
+        \ 'cpp': ['clang', 'clangtidy', 'g++'],
         \ }
-  " let g:ale_python_flake8_args = '--ignore=E,W,F403,F405 --select=F,C'
-  " let g:ale_c_clang_options = '-std=c11 -Wall -Wextra -Werror -fexceptions -DNDEBUG'
-  " let g:ale_cpp_clang_options = '-std=c++14 -Wall -Wextra -Werror -fexceptions -DNDEBUG'
-  " set statusline+=%{ALEGetStatusLine()}
-  " let g:ale_statusline_format = ['⨉ %d', '⚠ %d', '⬥ ok']
+  let g:ale_open_list = 1
+  let g:ale_python_flake8_options = '--max-line-length 120'
+  let g:ale_python_mypy_options = '--ignore-missing-imports'
 
-  if exists('mvrc_have_ycm') && has_key(g:ale_linters, 'cpp')
-    let g:ycm_enable_diagnostic_signs = 0  " Disable diagnostics when ALE is enabled for C and C++
-  endif
+  "if exists('s:have_ycm') && has_key(g:ale_linters, 'cpp')
+  "  let g:ycm_show_diagnostics_ui = 0  " Disable diagnostics when ALE is enabled for C and C++
+  "endif
 endif
 
-if exists('mvrc_have_goyo')
+if exists('s:have_goyo')
   let g:goyo_width = 120
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
 endif
 
-if exists('mvrc_have_hardtime')
+if exists('s:have_emoji')
+  set completefunc=emoji#complete
+endif
+
+if exists('s:have_hardtime')
   let g:hardtime_default_on = 1
   let g:hardtime_ignore_quickfix = 1
   let g:hardtime_allow_different_key = 1
