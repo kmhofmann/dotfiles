@@ -2,18 +2,14 @@
 " (https://github.com/kmhofmann/dotfiles)
 " =======================================
 "
-" Should work under Linux and Mac OS X. Not so much tested under Windows or GUI
-" versions of vim, but it may also work.
-"
 " Installation:
 " * $ cp .vimrc ~
 " * At first call of vim with this .vimrc, the plugin manager vim-plug will be
-"   bootstrapped. Then, issue ':PlugInstall' as an Ex command to install the
-"   specified plugins.
-" * You may alter the list of plugins on a higher level by editing the
-"   's:plugin_categories' list below. For example, you might not want to
-"   install the extended development plugins on an embedded device." After
-"   installation of the plugins, just restart vim.
+"   bootstrapped, and plugins will be auto-installed.
+" * You can alter the list of plugins by editing the 's:plugin_categories' list
+"   below. For example, you might not want to install the extended development
+"   plugins on an embedded device." After installation of the plugins, just
+"   restart vim.
 " * All mentioned plugins will be installed from GitHub. Check their respective
 "   pages for functionality and documentation.
 
@@ -21,19 +17,19 @@
 "=======================================
 
 let s:plugin_categories = ['basic',
-                            \ 'textsearch',
-                            \ 'filesearch',
-                            \ 'ui_additions',
-                            \ 'copypaste',
-                            \ 'devel',
-                            \ 'devel_ext',
-                            \ 'google',
-                            \ 'misc',
-                            \ 'colorschemes']
+                         \ 'textsearch',
+                         \ 'filesearch',
+                         \ 'ui_additions',
+                         \ 'copypaste',
+                         \ 'devel',
+                         \ 'devel_ext',
+                         \ 'google',
+                         \ 'misc',
+                         \ 'colorschemes']
 let s:faster_redraw = 0
-let s:show_airline_tabs = 0
+let s:show_airline_tabs = 1
 
-" Bootstrap vim-plug, if not already present
+" Bootstrap vim-plug automatically, if not already present
 if has("unix") || has("macunix")
   if empty(glob('~/.vim/autoload/plug.vim'))
     silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
@@ -65,6 +61,7 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
   Plug 'godlygeek/tabular'               " Text alignment made easy
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
+  Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
   let s:have_bbye = 1
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
   let s:have_localvimrc = 1
@@ -72,7 +69,7 @@ endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
-  Plug 'justinmk/vim-sneak'              " f-like search using two letters
+  Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
 endif
 
 if index(s:plugin_categories, 'filesearch') >= 0
@@ -95,8 +92,8 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   Plug 'vim-airline/vim-airline'         " Status/tabline
   Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
   let s:have_airline = 1
-  Plug 'bling/vim-bufferline'
-  let s:have_bufferline = 1
+  "Plug 'bling/vim-bufferline'
+  "let s:have_bufferline = 1
   Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
   let s:have_buffergator = 1
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
@@ -107,15 +104,11 @@ if index(s:plugin_categories, 'ui_additions') >= 0
 endif
 
 if index(s:plugin_categories, 'copypaste') >= 0
-  "Plug 'maxbrunsfeld/vim-yankstack'     " Keep yank stack
-  "let s:have_yankstack = 1
   Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
   let s:have_easyclip = 1
 endif
 
 if index(s:plugin_categories, 'devel') >= 0
-  "Plug 'tpope/vim-sleuth'               " Adjust indentation settings automatically
-  "Plug 'jreybert/vimagit'               " Git wrapper
   Plug 'scrooloose/nerdcommenter'        " Commenting code
   Plug 'tpope/vim-fugitive'              " Git wrapper
   Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
@@ -166,6 +159,8 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'tomasr/molokai'
   Plug 'euclio/vim-nocturne'
   Plug 'nanotech/jellybeans.vim'
+  Plug 'nanotech/jellybeans.vim'
+  Plug 'sonjapeterson/1989.vim'
   Plug 'google/vim-colorscheme-primary'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
@@ -211,25 +206,26 @@ set nowritebackup
 " Tabbing and indentation
 "=======================================
 
-set tabstop=8       " number of visual spaces per TAB
-set softtabstop=2   " number of spaces in tab when editing
+set tabstop=8       " Number of visual spaces per TAB
+set softtabstop=2   " Number of spaces in tab when editing
 set shiftwidth=2
 set shiftround      " Always indent by multiple of shiftwidth
 set smarttab        " Be smart when using tabs
 set expandtab       " Tabs are spaces
-set smartindent
 set autoindent
 
-autocmd Filetype python setlocal softtabstop=4 shiftwidth=4 colorcolumn=120
-autocmd Filetype cpp    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120
-autocmd Filetype cmake  setlocal softtabstop=4 shiftwidth=4 colorcolumn=120
-autocmd Filetype vim    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120 textwidth=120
+autocmd Filetype python setlocal softtabstop=4 shiftwidth=4 colorcolumn=120 expandtab
+autocmd Filetype cpp    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120 expandtab
+autocmd Filetype cmake  setlocal softtabstop=4 shiftwidth=4 colorcolumn=120 expandtab
+autocmd Filetype json   setlocal softtabstop=2 shiftwidth=2 colorcolumn=80  expandtab
+autocmd Filetype sh     setlocal softtabstop=2 shiftwidth=2 colorcolumn=80  expandtab
+autocmd Filetype vim    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120 expandtab textwidth=120
 
 " Searching
 "=======================================
 
-set incsearch           " search as characters are entered
-set hlsearch            " highlight matches
+set incsearch           " Search as characters are entered
+set hlsearch            " Highlight matches
 set ignorecase          " Ignore case when searching
 set smartcase           " When searching try to be smart about cases
 set magic               " For regular expressions turn magic on
@@ -250,6 +246,7 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
   if !has("gui_running") && filereadable(expand("~/.vimrc_background"))
     let base16colorspace=256
+    let g:base16_shell_path="~/.config/base16-shell/scripts/"
     source ~/.vimrc_background
   else
     colorscheme molokai
@@ -266,8 +263,8 @@ set hidden              " A buffer becomes hidden when it is abandoned
 set showcmd             " Show command in bottom bar
 set ruler               " Always show current position
 set nowrap              " Don't wrap overly long lines
-set wildmode=longest,list
-" set wildmenu            " Visual autocomplete for command menu
+set wildmode=longest,list  " Visual autocomplete for command menu
+" set wildmenu
 " set wildmode=full
 set lazyredraw          " Redraw only when we need to.
 set showmatch           " Highlight matching [{()}]
@@ -279,8 +276,8 @@ set synmaxcol=300       " Highlight up to 300 columns
 
 set number              " Show line numbers
 if !s:faster_redraw
-  set relativenumber      " Show relative line numbers
-  set cursorline          " Highlight current line
+  set relativenumber    " Show relative line numbers
+  set cursorline        " Highlight current line
 endif
 
 " Allow mapping of meta/option key in MacVim
@@ -495,6 +492,28 @@ if exists('s:have_airline')
       let g:airline#extensions#tabline#show_buffers = 1
     endif
   endif
+
+  if !exists('g:airline_symbols')
+    let g:airline_symbols = {}
+  endif
+  " unicode symbols
+  let g:airline_left_sep = '»'
+  let g:airline_left_sep = '▶'
+  let g:airline_right_sep = '«'
+  let g:airline_right_sep = '◀'
+  let g:airline_symbols.crypt = '🔒'
+  let g:airline_symbols.linenr = '␊'
+  let g:airline_symbols.linenr = '␤'
+  let g:airline_symbols.linenr = '¶'
+  let g:airline_symbols.maxlinenr = '☰'
+  let g:airline_symbols.maxlinenr = ''
+  let g:airline_symbols.branch = '⎇'
+  let g:airline_symbols.paste = 'ρ'
+  let g:airline_symbols.paste = 'Þ'
+  let g:airline_symbols.paste = '∥'
+  let g:airline_symbols.spell = 'Ꞩ'
+  let g:airline_symbols.notexists = '∄'
+  let g:airline_symbols.whitespace = 'Ξ'
 endif
 
 if exists('s:have_bufferline')
@@ -542,12 +561,13 @@ if exists('s:have_nerdtree')
     endif
   endfunction
 
+  " Find current file in NERDTree
   noremap <silent> <F9> :NERDTreeFind<cr>
+  " Open or focus NERDTree with Ctrl-n, or close it if already focused
   nnoremap <silent> <C-n> :call FocusOrCloseNERDTree()<cr>
   let g:NERDTreeShowHidden=1
   let g:NERDTreeStatusline="%f"
   let g:NERDTreeWinPos="left"
-  "let g:NERDTreeWinSize=40
   let NERDTreeIgnore = ['\.pyc$', '__pycache__', '.swp']
   " - Close vim if the only window left is a NERDTree
   autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
@@ -607,7 +627,8 @@ endif
 
 if exists('s:have_ale')
   " - Enable some linters. Note that for proper C and C++ support, one should provide a .lvimrc file in the project
-  "   root directory, with the proper g:ale_c??_[clang|g++]_options settings.
+  "   root directory, with the proper g:ale_c??_[clang|g++]_options settings. Basic options are set here, but they
+  "   most likely aren't sufficient for most projects (no include paths provided here).
   let g:ale_linters = {
         \ 'json': 'all',
         \ 'markdown': 'all',
@@ -617,9 +638,19 @@ if exists('s:have_ale')
         \ 'c': ['clang', 'gcc'],
         \ 'cpp': ['clang', 'clangtidy', 'g++'],
         \ }
-  let g:ale_open_list = 1
-  let g:ale_python_flake8_options = '--max-line-length 120'
+  let g:ale_open_list = 0
+  let g:ale_lint_delay = 1000
+
   let g:ale_python_mypy_options = '--ignore-missing-imports'
+
+  let s:ale_c_opts = ['-std=c11', '-Wall', '-Wextra', '-Werror']
+  let g:ale_c_gcc_options = s:ale_c_opts
+  let g:ale_c_clang_options = s:ale_c_opts
+
+  let s:ale_cpp_opts = ['-std=c++14', '-Wall', '-Wextra', '-Werror', '-fexceptions']
+  let g:ale_cpp_gcc_options = s:ale_cpp_opts
+  let g:ale_cpp_clang_options = s:ale_cpp_opts
+  let g:ale_cpp_clangtidy_options = s:ale_cpp_opts
 
   "if exists('s:have_ycm') && has_key(g:ale_linters, 'cpp')
   "  let g:ycm_show_diagnostics_ui = 0  " Disable diagnostics when ALE is enabled for C and C++
