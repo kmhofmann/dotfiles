@@ -191,10 +191,21 @@ set encoding=utf8     " Set utf8 as standard encoding and en_US as the standard 
 set ffs=unix,dos,mac  " Use Unix as the standard file type
 
 if has("unix") || has("macunix")
-  set backupdir=$HOME/.vim/backup//,.
-  set directory=$HOME/.vim/swp//,.
+  if !isdirectory($HOME . '/.vim/backup')
+    silent call mkdir($HOME . '/.vim/backup', 'p')
+  endif
+  set backupdir=$HOME/.vim/backup/,.
+
+  if !isdirectory($HOME . '/.vim/swp')
+    silent call mkdir($HOME . '/.vim/swp', 'p')
+  endif
+  set directory=$HOME/.vim/swp/,.
 endif
+
 if has("persistent_undo")
+  if !isdirectory($HOME . '/.vim/undo')
+    silent call mkdir($HOME . '/.vim/undo', 'p')
+  endif
   set undodir=$HOME/.vim/undo/
   set undofile
 endif
@@ -213,6 +224,7 @@ set shiftround      " Always indent by multiple of shiftwidth
 set smarttab        " Be smart when using tabs
 set expandtab       " Tabs are spaces
 set autoindent
+set nojoinspaces
 
 autocmd Filetype python setlocal softtabstop=4 shiftwidth=4 colorcolumn=120 expandtab
 autocmd Filetype cpp    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120 expandtab
@@ -575,6 +587,7 @@ endif
 
 if exists('s:have_undotree')
   nnoremap <silent> <Leader>u :UndotreeToggle<cr>
+  let g:undotree_WindowLayout = 3
 endif
 
 if exists('s:have_yankstack')
