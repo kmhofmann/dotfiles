@@ -656,11 +656,11 @@ if exists('s:have_ale')
 
   let g:ale_python_mypy_options = '--ignore-missing-imports'
 
-  let s:ale_c_opts = ['-std=c11', '-Wall', '-Wextra', '-Werror']
+  let s:ale_c_opts = '-std=c11 -Wall -Wextra -Werror'
   let g:ale_c_gcc_options = s:ale_c_opts
   let g:ale_c_clang_options = s:ale_c_opts
 
-  let s:ale_cpp_opts = ['-std=c++14', '-Wall', '-Wextra', '-Werror', '-fexceptions']
+  let s:ale_cpp_opts = '-std=c++14 -Wall -Wextra -Werror -fexceptions'
   let g:ale_cpp_gcc_options = s:ale_cpp_opts
   let g:ale_cpp_clang_options = s:ale_cpp_opts
   let g:ale_cpp_clangtidy_options = s:ale_cpp_opts
