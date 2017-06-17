@@ -70,6 +70,10 @@ endif
 if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
   Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
+  Plug 'unblevable/quick-scope'          " highlights characters to target with f/F
+  let s:have_quickscope = 1
+  Plug 'haya14busa/incsearch.vim'
+  let s:have_incsearch = 1
 endif
 
 if index(s:plugin_categories, 'filesearch') >= 0
@@ -159,8 +163,8 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'tomasr/molokai'
   Plug 'euclio/vim-nocturne'
   Plug 'nanotech/jellybeans.vim'
-  Plug 'nanotech/jellybeans.vim'
   Plug 'sonjapeterson/1989.vim'
+  Plug 'altercation/vim-colors-solarized'
   Plug 'google/vim-colorscheme-primary'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
@@ -255,6 +259,7 @@ if !has("gui_running")
 endif
 
 if index(s:plugin_categories, 'colorschemes') >= 0
+  let g:solarized_termcolors=256 " Use the inaccurate 256 color scheme for solarized.
   " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
   if !has("gui_running") && filereadable(expand("~/.vimrc_background"))
     let base16colorspace=256
@@ -464,6 +469,17 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
 " Plugin configurations
 "=======================================
+
+if exists('s:have_quickscope')
+  " Trigger a highlight in the appropriate direction when pressing these keys:
+  let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
+endif
+
+if exists('s:have_incsearch')
+  map /  <Plug>(incsearch-forward)
+  map ?  <Plug>(incsearch-backward)
+  map g/ <Plug>(incsearch-stay)
+endif
 
 if exists('s:have_listtoggle')
   " - Height of the location list window
