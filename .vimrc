@@ -58,6 +58,8 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
   Plug 'tpope/vim-surround'              " 'surrounding' motion
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
+  Plug 'tpope/vim-sleuth'                " Detect automatic indentation
+  let s:have_sleuth = 1
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
   Plug 'godlygeek/tabular'               " Text alignment made easy
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
@@ -217,6 +219,9 @@ endif
 set swapfile
 set nobackup
 set nowritebackup
+
+set list
+set listchars=tab:>-,trail:~,extends:>,precedes:<
 
 " Tabbing and indentation
 "=======================================
@@ -469,6 +474,10 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
 " Plugin configurations
 "=======================================
+
+if exists('s:have_sleuth')
+  let g:sleuth_automatic = 0
+endif
 
 if exists('s:have_quickscope')
   " Trigger a highlight in the appropriate direction when pressing these keys:
