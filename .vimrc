@@ -3,30 +3,40 @@
 " =======================================
 "
 " Installation:
+"
 " * $ cp .vimrc ~
-" * At first call of vim with this .vimrc, the plugin manager vim-plug will be
-"   bootstrapped, and plugins will be auto-installed.
+"
+" * If not present yet, the plugin manager vim-plug will be bootstrapped, and
+"   plugins will be auto-installed. See https://github.com/junegunn/vim-plug on
+"   how to use vim-plug.
+"
 " * You can alter the list of plugins by editing the 's:plugin_categories' list
-"   below. For example, you might not want to install the extended development
-"   plugins on an embedded device." After installation of the plugins, just
-"   restart vim.
+"   below. Not all plugin categories are enabled by default, to keep the initial
+"   installation lightweight. You might want to enable more categories.
+"
+" * After installation of new plugins, just restart vim.
+"
 " * All mentioned plugins will be installed from GitHub. Check their respective
 "   pages for functionality and documentation.
 
 " Plugin management
 "=======================================
 
-let s:plugin_categories = ['basic',
-                         \ 'textsearch',
-                         \ 'filesearch',
-                         \ 'ui_additions',
-                         \ 'copypaste',
-                         \ 'devel',
-                         \ 'devel_ext',
-                         \ 'google',
-                         \ 'misc',
-                         \ 'colorschemes']
-let s:faster_redraw = 0
+" Activate or deactivate categories here:
+let s:plugin_categories  = ['basic']
+let s:plugin_categories += ['textsearch']
+let s:plugin_categories += ['copypaste']
+let s:plugin_categories += ['ui_additions']
+"let s:plugin_categories += ['filesearch']
+"let s:plugin_categories += ['devel']
+"let s:plugin_categories += ['devel_ext']
+"let s:plugin_categories += ['google']
+let s:plugin_categories += ['colorschemes']
+"let s:plugin_categories += ['misc']
+"let s:plugin_categories += ['annoying']
+
+" Set these options to your liking
+let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
 let s:show_airline_tabs = 1
 
 " Bootstrap vim-plug automatically, if not already present
@@ -58,13 +68,13 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
   Plug 'tpope/vim-surround'              " 'surrounding' motion
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
-  Plug 'tpope/vim-sleuth'                " Detect automatic indentation
+  Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
   let s:have_sleuth = 1
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
   Plug 'godlygeek/tabular'               " Text alignment made easy
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
-  Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
   let s:have_bbye = 1
+  Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
   let s:have_localvimrc = 1
 endif
@@ -78,20 +88,9 @@ if index(s:plugin_categories, 'textsearch') >= 0
   let s:have_incsearch = 1
 endif
 
-if index(s:plugin_categories, 'filesearch') >= 0
-  if !has("win32")
-    Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
-    Plug 'junegunn/fzf.vim'
-    let s:have_fzf = 1
-  else
-    Plug 'ctrlpvim/ctrlp.vim', { 'on': ['CtrlP', 'CtrlPBuffer', 'CtrlPMRU', 'CtrlPMixed'] }  " Fuzzy file finder
-    let s:have_ctrlp = 1
-  endif
-  Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
-  Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
-  let s:have_nerdtree = 1
-  Plug 'mileszs/ack.vim', { 'on': ['Ack'] }  " Wrapper for ack (grep-like tool)
-  let s:have_ack = 1
+if index(s:plugin_categories, 'copypaste') >= 0
+  Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
+  let s:have_easyclip = 1
 endif
 
 if index(s:plugin_categories, 'ui_additions') >= 0
@@ -109,9 +108,20 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   Plug 'mhinz/vim-startify'              " A fancy start screen
 endif
 
-if index(s:plugin_categories, 'copypaste') >= 0
-  Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
-  let s:have_easyclip = 1
+if index(s:plugin_categories, 'filesearch') >= 0
+  if !has("win32")
+    Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
+    Plug 'junegunn/fzf.vim'
+    let s:have_fzf = 1
+  else
+    Plug 'ctrlpvim/ctrlp.vim', { 'on': ['CtrlP', 'CtrlPBuffer', 'CtrlPMRU', 'CtrlPMixed'] }  " Fuzzy file finder
+    let s:have_ctrlp = 1
+  endif
+  Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
+  Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
+  let s:have_nerdtree = 1
+  Plug 'mileszs/ack.vim', { 'on': ['Ack'] }  " Wrapper for ack (grep-like tool)
+  let s:have_ack = 1
 endif
 
 if index(s:plugin_categories, 'devel') >= 0
@@ -220,7 +230,7 @@ set swapfile
 set nobackup
 set nowritebackup
 
-set list
+set nolist
 set listchars=tab:>-,trail:~,extends:>,precedes:<
 
 " Tabbing and indentation
