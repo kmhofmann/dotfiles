@@ -24,15 +24,18 @@
 
 " Activate or deactivate categories here:
 let s:plugin_categories  = ['basic']
+let s:plugin_categories += ['buffers']
 let s:plugin_categories += ['textsearch']
 let s:plugin_categories += ['copypaste']
 let s:plugin_categories += ['ui_additions']
-"let s:plugin_categories += ['filesearch']
-"let s:plugin_categories += ['devel']
-"let s:plugin_categories += ['devel_ext']
-"let s:plugin_categories += ['google']
+let s:plugin_categories += ['filesearch']
+let s:plugin_categories += ['sessions']
+let s:plugin_categories += ['formatting']
+let s:plugin_categories += ['devel']
+let s:plugin_categories += ['devel_ext']
+let s:plugin_categories += ['google']
 let s:plugin_categories += ['colorschemes']
-"let s:plugin_categories += ['misc']
+let s:plugin_categories += ['misc']
 "let s:plugin_categories += ['annoying']
 
 " Set these options to your liking
@@ -68,15 +71,15 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
   Plug 'tpope/vim-surround'              " 'surrounding' motion
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
-  Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
-  let s:have_sleuth = 1
-  Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
-  Plug 'godlygeek/tabular'               " Text alignment made easy
+  Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
+  let s:have_localvimrc = 1
+endif
+
+if index(s:plugin_categories, 'buffers') >= 0
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let s:have_bbye = 1
   Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
-  Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
-  let s:have_localvimrc = 1
+  Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
 endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
@@ -84,8 +87,9 @@ if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
   Plug 'unblevable/quick-scope'          " highlights characters to target with f/F
   let s:have_quickscope = 1
-  Plug 'haya14busa/incsearch.vim'
-  let s:have_incsearch = 1
+  Plug 'haya14busa/is.vim'               " Improved incremental search
+  Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
+  let s:have_grepper = 1
 endif
 
 if index(s:plugin_categories, 'copypaste') >= 0
@@ -124,6 +128,18 @@ if index(s:plugin_categories, 'filesearch') >= 0
   let s:have_ack = 1
 endif
 
+if index(s:plugin_categories, 'sessions') >= 0
+  Plug 'tpope/vim-obsession'             " Easier session handling
+endif
+
+if index(s:plugin_categories, 'formatting') >= 0
+  Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
+  Plug 'godlygeek/tabular'               " Text alignment made easy
+  Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
+  let s:have_sleuth = 1
+  Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
+endif
+
 if index(s:plugin_categories, 'devel') >= 0
   Plug 'scrooloose/nerdcommenter'        " Commenting code
   Plug 'tpope/vim-fugitive'              " Git wrapper
@@ -134,7 +150,6 @@ if index(s:plugin_categories, 'devel') >= 0
 endif
 
 if index(s:plugin_categories, 'devel_ext') >= 0
-  Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
   Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
   if (v:version < 800)
     Plug 'vim-syntastic/syntastic'       " Syntax checking for many languages
@@ -147,11 +162,12 @@ if index(s:plugin_categories, 'devel_ext') >= 0
     Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
     let s:have_ycm = 1
   endif
-  Plug 'lyuts/vim-rtags'
-  let s:have_rtags = 1
+  "Plug 'lyuts/vim-rtags'
+  "let s:have_rtags = 1
 endif
 
 if index(s:plugin_categories, 'google') >= 0
+  " Some of these are inter-dependent, hence the separate category
   Plug 'google/vim-searchindex'
   Plug 'google/vim-maktaba'
   Plug 'google/vim-glaive'
@@ -494,10 +510,10 @@ if exists('s:have_quickscope')
   let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
 endif
 
-if exists('s:have_incsearch')
-  map /  <Plug>(incsearch-forward)
-  map ?  <Plug>(incsearch-backward)
-  map g/ <Plug>(incsearch-stay)
+if exists('s:have_grepper')
+  " Maps the Grepper operator for normal and visual mode
+  nmap gs  <plug>(GrepperOperator)
+  xmap gs  <plug>(GrepperOperator)
 endif
 
 if exists('s:have_listtoggle')
