@@ -23,7 +23,8 @@
 "=======================================
 
 " Activate or deactivate categories here:
-let s:plugin_categories  = ['basic']
+let s:plugin_categories  = ['colorschemes']
+let s:plugin_categories += ['basic']
 let s:plugin_categories += ['buffers']
 let s:plugin_categories += ['textsearch']
 "let s:plugin_categories += ['copypaste']
@@ -36,7 +37,6 @@ let s:plugin_categories += ['textsearch']
 "let s:plugin_categories += ['google']
 "let s:plugin_categories += ['misc']
 "let s:plugin_categories += ['annoying']
-let s:plugin_categories += ['colorschemes']
 
 " Set these options to your liking
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
@@ -64,12 +64,23 @@ function! BuildYCM(info)  " See https://github.com/junegunn/vim-plug
 endfunction
 
 call plug#begin()
+if index(s:plugin_categories, 'colorschemes') >= 0
+  Plug 'sjl/badwolf'
+  Plug 'tomasr/molokai'
+  Plug 'euclio/vim-nocturne'
+  Plug 'nanotech/jellybeans.vim'
+  Plug 'altercation/vim-colors-solarized'
+  Plug 'google/vim-colorscheme-primary'
+  Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
+endif
+
 if index(s:plugin_categories, 'basic') >= 0
   Plug 'drmikehenry/vim-fixkey'          " Permits mapping more classes of characters (e.g. <Alt-?>)
   Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
   Plug 'tpope/vim-surround'              " 'surrounding' motion
+  " Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (**** CONFLICTS WITH VIM-SNEAK ***)
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
   let s:have_localvimrc = 1
@@ -84,12 +95,12 @@ endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
-  Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
-  Plug 'unblevable/quick-scope'          " highlights characters to target with f/F
-  let s:have_quickscope = 1
   Plug 'haya14busa/is.vim'               " Improved incremental search
   Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
   let s:have_grepper = 1
+  Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
+  Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
+  let s:have_sneak = 1
 endif
 
 if index(s:plugin_categories, 'copypaste') >= 0
@@ -101,8 +112,6 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   Plug 'vim-airline/vim-airline'         " Status/tabline
   Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
   let s:have_airline = 1
-  "Plug 'bling/vim-bufferline'
-  "let s:have_bufferline = 1
   Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
   let s:have_buffergator = 1
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
@@ -184,17 +193,6 @@ if index(s:plugin_categories, 'misc') >= 0
     Plug 'junegunn/vim-emoji'
     let s:have_emoji = 1
   endif
-endif
-
-if index(s:plugin_categories, 'colorschemes') >= 0
-  Plug 'sjl/badwolf'
-  Plug 'tomasr/molokai'
-  Plug 'euclio/vim-nocturne'
-  Plug 'nanotech/jellybeans.vim'
-  Plug 'sonjapeterson/1989.vim'
-  Plug 'altercation/vim-colors-solarized'
-  Plug 'google/vim-colorscheme-primary'
-  Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
 if index(s:plugin_categories, 'annoying') >= 0
@@ -505,9 +503,8 @@ if exists('s:have_sleuth')
   let g:sleuth_automatic = 0
 endif
 
-if exists('s:have_quickscope')
-  " Trigger a highlight in the appropriate direction when pressing these keys:
-  let g:qs_highlight_on_keys = ['f', 'F', 't', 'T']
+if exists('s:have_sneak')
+  let g:sneak#s_next = 1
 endif
 
 if exists('s:have_grepper')
@@ -592,7 +589,10 @@ if exists('s:have_fzf')
   nnoremap <silent> <leader>ff :Files<CR>
   nnoremap <silent> <leader>fb :Buffers<CR>
   nnoremap <silent> <leader>fw :Windows<CR>
+  nnoremap <silent> <leader>fm :Marks<CR>
   nnoremap <silent> <leader>fh :History<CR>
+  nnoremap <silent> <leader>fl :Lines<CR>
+  nnoremap <silent> <leader>fc :Commits<CR>
 endif
 
 if exists('s:have_ctrlp')
@@ -639,18 +639,6 @@ endif
 if exists('s:have_undotree')
   nnoremap <silent> <Leader>u :UndotreeToggle<cr>
   let g:undotree_WindowLayout = 3
-endif
-
-if exists('s:have_yankstack')
-  if has("macunix") && !has("gui_running")
-    " Option-p:
-    nmap π <Plug>yankstack_substitute_older_paste
-    " Option-P:
-    nmap ∏ <Plug>yankstack_substitute_newer_paste
-  endif
-  " Need to omit 's', 'S' from being remapped because of vim-sneak
-  let g:yankstack_yank_keys = ['c', 'C', 'd', 'D', 'x', 'X', 'y', 'Y']
-  call yankstack#setup()  " needs to be called before remapping Y (see !s:have_easyclip section)
 endif
 
 if exists('s:have_easyclip')
