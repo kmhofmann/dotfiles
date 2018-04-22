@@ -18,6 +18,31 @@
 "
 " * All mentioned plugins will be installed from GitHub. Check their respective
 "   pages for functionality and documentation.
+"
+" * The LanguageClient-neovim plugin can make use of several language servers,
+"   according to the Language Server Protocol (LSP).
+"   See also http://langserver.org/.
+"   Below, 'cquery' and 'python-language-server' are preconfigured.
+"   To install them on the system (on a per-user level), perform the following
+"   steps (or similar):
+"   - Install cquery:
+"     $ git clone --recursive https://github.com/cquery-project/cquery.git
+"     $ mkdir -p ./cquery/build && cd ./cquery/build
+"     $ cmake -DCMAKE_BUILD_TYPE=Release \
+"             -DCMAKE_INSTALL_PREFIX=$HOME/local/cquery \
+"             -DCMAKE_EXPORT_COMPILE_COMMANDS=YES \
+"             ..
+"     $ make -j$(nproc) && make install
+"     - Add $HOME/local/cquery/bin to the $PATH.
+"   - Install python-language-server:
+"     $ pip install --user --upgrade python-language-server
+"     $ pip install --user --upgrade 'python-language-server[all]'
+"     - Add $HOME/.local/bin to the $PATH.
+"
+" * Deoplete requires the Python 'neovim' package to be installed. This applies
+"   both to Neovim as well vim8!
+"   $ pip install --user --upgrade neovim
+"   $ pip3 install --user --upgrade neovim
 
 " Plugin management
 "=======================================
@@ -75,7 +100,9 @@ if index(s:plugin_categories, 'colorschemes') >= 0
 endif
 
 if index(s:plugin_categories, 'basic') >= 0
-  Plug 'drmikehenry/vim-fixkey'          " Permits mapping more classes of characters (e.g. <Alt-?>)
+  if !has('nvim')
+    Plug 'drmikehenry/vim-fixkey'          " Permits mapping more classes of characters (e.g. <Alt-?>)
+  endif
   Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
@@ -84,13 +111,15 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
   let s:have_localvimrc = 1
+  Plug 'drzel/vim-split-line'
+  let s:have_splitline = 1
 endif
 
 if index(s:plugin_categories, 'buffers') >= 0
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let s:have_bbye = 1
   Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
-  Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
+  "Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
 endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
@@ -156,21 +185,34 @@ if index(s:plugin_categories, 'devel') >= 0
   Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'airblade/vim-gitgutter'          " Show visual git diff in the gutter
   let s:have_gitgutter = 1
+  Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
 endif
 
 if index(s:plugin_categories, 'devel_ext') >= 0
-  Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
-  if (v:version < 800)
-    Plug 'vim-syntastic/syntastic'       " Syntax checking for many languages
-    let s:have_syntastic = 1
-  else
+  if (v:version >= 800)
     Plug 'w0rp/ale'                      " Asynchronous Lint Engine
     let s:have_ale = 1
+
+    if !has("win32")
+      if has('nvim')
+        Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+      else
+        Plug 'Shougo/deoplete.nvim'
+        Plug 'roxma/nvim-yarp'
+        Plug 'roxma/vim-hug-neovim-rpc'
+      endif
+      let s:have_deoplete = 1
+
+      Plug 'autozimu/LanguageClient-neovim', {'branch': 'next', 'do': 'bash install.sh'}
+      let s:have_language_client_neovim = 1
+    endif
   endif
-  if !has("win32")
-    Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
-    let s:have_ycm = 1
-  endif
+
+  "if !has("win32")
+  "  Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
+  "  let s:have_ycm = 1
+  "endif
+
   "Plug 'lyuts/vim-rtags'
   "let s:have_rtags = 1
 endif
@@ -189,10 +231,6 @@ if index(s:plugin_categories, 'misc') >= 0
   Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
   Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
   let s:have_goyo = 1
-  if has("macunix")
-    Plug 'junegunn/vim-emoji'
-    let s:have_emoji = 1
-  endif
 endif
 
 if index(s:plugin_categories, 'annoying') >= 0
@@ -203,8 +241,6 @@ call plug#end()
 
 if exists('s:have_codefmt')
   call glaive#Install()
-endif
-if exists('s:have_codefmt')
   Glaive codefmt plugin[mappings]
 endif
 
@@ -282,7 +318,7 @@ set infercase           " Infer case for completions
 syntax enable           " Enable syntax highlighting
 set background=dark     " Dark background color
 
-if !has("gui_running")
+if !has("gui_running") && !has('nvim')
   set term=screen-256color
   set t_Co=256
 endif
@@ -390,7 +426,9 @@ inoremap jj <Esc>
 "inoremap jk <Esc>
 
 " Disable Shift-K
-noremap <S-k> <nop>
+if !exists('s:have_language_client_neovim')
+  noremap <S-k> <nop>
+endif
 
 " Allow the . to execute once for each line of a visual selection
 vnoremap . :normal .<cr>
@@ -475,8 +513,8 @@ noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
 " F6: Switch case sensitivity
 noremap <F6> :set ignorecase!<cr>:set ignorecase?<cr>
 
-" F7: Syntastic check (see below)
-" F8: Syntastic reset (see below)
+" F7: FREE
+" F8: FREE
 " F9: Find file in NERDTree (see below)
 
 " F10: Toggle text width
@@ -499,18 +537,22 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 " Plugin configurations
 "=======================================
 
-if exists('s:have_sleuth')
+if exists('s:havf_sleuth')
   let g:sleuth_automatic = 0
 endif
 
 if exists('s:have_sneak')
-  let g:sneak#s_next = 1
+  let g:sneak#s_next = 1  " Enable sneak-clever-s. Press 's'/'S' again to go to next/previous match.
+endif
+
+if exists('s:have_splitline')
+  nnoremap <leader>s :SplitLine<CR>
 endif
 
 if exists('s:have_grepper')
   " Maps the Grepper operator for normal and visual mode
-  nmap gs  <plug>(GrepperOperator)
-  xmap gs  <plug>(GrepperOperator)
+  nmap gs <plug>(GrepperOperator)
+  xmap gs <plug>(GrepperOperator)
 endif
 
 if exists('s:have_listtoggle')
@@ -665,18 +707,6 @@ if exists('s:have_rtags')
   let g:rtagsExcludeSysHeaders = 1
 endif
 
-if exists('s:have_syntastic')
-  noremap <silent> <F7> :SyntasticCheck<cr>
-  noremap <silent> <F8> :SyntasticReset<cr>
-  let g:syntastic_mode_map = { 'mode': 'passive' }  " Disable checking unless user-requested
-  let g:syntastic_always_populate_loc_list = 1  " Automatically populate location list
-  let g:syntastic_auto_loc_list = 1  " Automatically open/close location list
-  let g:syntastic_check_on_open = 0
-  let g:syntastic_check_on_wq = 0
-  let g:syntastic_loc_list_height = 10
-  let g:syntastic_python_pylint_post_args="--max-line-length=120"
-endif
-
 if exists('s:have_ale')
   " - Enable some linters. Note that for proper C and C++ support, one should provide a .lvimrc file in the project
   "   root directory, with the proper g:ale_c??_[clang|g++]_options settings. Basic options are set here, but they
@@ -709,14 +739,39 @@ if exists('s:have_ale')
   "endif
 endif
 
+if exists('s:have_deoplete')
+  let g:deoplete#enable_at_startup = 1
+  if !exists('g:deoplete#omni#input_patterns')
+    let g:deoplete#omni#input_patterns = {}
+  endif
+endif
+
+if exists('s:have_language_client_neovim')
+  let g:LanguageClient_serverCommands = {
+    \ 'cpp': ['cquery', '--log-file=/tmp/cq.log'],
+    \ 'c': ['cquery', '--log-file=/tmp/cq.log'],
+    \ 'python': ['pyls'],
+    \ }
+  "let g:LanguageClient_serverCommands.cpp = ['cquery', '--log-file=/tmp/cq.log']
+  "let g:LanguageClient_serverCommands.c = ['cquery', '--log-file=/tmp/cq.log']
+
+  let g:LanguageClient_loadSettings = 1
+  let g:LanguageClient_settingsPath = $HOME . '/.config/language_client/settings.json'
+  let g:LanguageClient_diagnosticsEnable = 0
+  set completefunc=LanguageClient#complete
+  set formatexpr=LanguageClient_textDocument_rangeFormatting()
+
+  nnoremap <silent> K :call LanguageClient_textDocument_hover()<cr>
+  nnoremap <silent> gd :call LanguageClient_textDocument_definition()<cr>
+  nnoremap <silent> gr :call LanguageClient_textDocument_references()<cr>
+  nnoremap <silent> gx :call LanguageClient_textDocument_documentSymbol()<cr>
+  nnoremap <silent> <leader>r :call LanguageClient_textDocument_rename()<cr>
+endif
+
 if exists('s:have_goyo')
   let g:goyo_width = 120
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
-endif
-
-if exists('s:have_emoji')
-  set completefunc=emoji#complete
 endif
 
 if exists('s:have_hardtime')
