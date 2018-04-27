@@ -61,7 +61,6 @@ let s:plugin_categories += ['textsearch']
 "let s:plugin_categories += ['devel_ext']
 "let s:plugin_categories += ['google']
 "let s:plugin_categories += ['misc']
-"let s:plugin_categories += ['annoying']
 
 " Set these options to your liking
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
@@ -81,12 +80,6 @@ elseif has("win32")
     exit
   endif
 endif
-
-function! BuildYCM(info)  " See https://github.com/junegunn/vim-plug
-  if a:info.status == 'installed' || a:info.force
-    !./install.py --clang-completer
-  endif
-endfunction
 
 call plug#begin()
 if index(s:plugin_categories, 'colorschemes') >= 0
@@ -172,10 +165,10 @@ endif
 
 if index(s:plugin_categories, 'formatting') >= 0
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
-  Plug 'godlygeek/tabular'               " Text alignment made easy
+  "Plug 'godlygeek/tabular'               " Text alignment made easy
+  Plug 'junegunn/vim-easy-align'         " Text alignment made easy
+  let s:have_easy_align = 1
   Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
-  let s:have_sleuth = 1
-  Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
 endif
 
 if index(s:plugin_categories, 'devel') >= 0
@@ -184,8 +177,8 @@ if index(s:plugin_categories, 'devel') >= 0
   Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'airblade/vim-gitgutter'          " Show visual git diff in the gutter
-  let s:have_gitgutter = 1
   Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
+  Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
 endif
 
 if index(s:plugin_categories, 'devel_ext') >= 0
@@ -207,14 +200,6 @@ if index(s:plugin_categories, 'devel_ext') >= 0
       let s:have_language_client_neovim = 1
     endif
   endif
-
-  "if !has("win32")
-  "  Plug 'Valloric/YouCompleteMe', { 'do': function('BuildYCM') }  " Syntax completion engine
-  "  let s:have_ycm = 1
-  "endif
-
-  "Plug 'lyuts/vim-rtags'
-  "let s:have_rtags = 1
 endif
 
 if index(s:plugin_categories, 'google') >= 0
@@ -233,10 +218,6 @@ if index(s:plugin_categories, 'misc') >= 0
   let s:have_goyo = 1
 endif
 
-if index(s:plugin_categories, 'annoying') >= 0
-  Plug 'takac/vim-hardtime'              " Enables a hard time
-  let s:have_hardtime = 1
-endif
 call plug#end()
 
 if exists('s:have_codefmt')
@@ -437,6 +418,8 @@ if !exists('s:have_easyclip')
   " Paste from yank register with <leader>p/P
   noremap <leader>p "0p
   noremap <leader>P "0P
+  " Map Y to behave like C, D
+  nmap Y y$
 endif
 
 " Move vertically by visual line
@@ -447,31 +430,36 @@ noremap k gk
 noremap <C-d> 5<C-d>
 noremap <C-u> 5<C-u>
 
-" Move 5 lines up and down
-noremap <A-j> 5j
-noremap <A-k> 5k
+" Switch to previous/next buffer
+noremap <silent> <A-j> :bprevious<cr>
+noremap <silent> <A-k> :bnext<cr>
+if has('nvim')
+  nnoremap <silent> <Tab> :bnext<cr>
+  nnoremap <silent> <S-Tab> :bprevious<cr>
+endif
+
+
+" Quick switching to alternate buffer
+noremap <silent> <A-l> :b#<cr>
+nnoremap <silent> <leader>a :b#<cr>
 
 " Move to beginning of line/first whitespace character or end of line
 noremap <leader>0 :call LineHome()<cr>:echo<cr>
 noremap <Home> :call LineHome()<cr>:echo<cr>
 inoremap <Home> <C-R>=LineHome()<cr>
-noremap <A-h> :call LineHome()<cr>:echo<cr>
-noremap <A-l> $
+
+" Move 5 lines up and down
+"noremap <A-j> 5j
+"noremap <A-k> 5k
 
 " Move lines up or down with Alt-d/u
 " (http://vim.wikia.com/wiki/Moving_lines_up_or_down)
-nnoremap <A-d> :m .+1<cr>==
-nnoremap <A-u> :m .-2<cr>==
-inoremap <A-d> <Esc>:m .+1<cr>==gi
-inoremap <A-u> <Esc>:m .-2<cr>==gi
-vnoremap <A-d> :m '>+1<cr>gv=gv
-vnoremap <A-u> :m '<-2<cr>gv=gv
-
-" Movement in insert mode with Ctrl-h/j/k/l
-inoremap <C-k> <Up>
-inoremap <C-j> <Down>
-inoremap <C-h> <Left>
-inoremap <C-l> <Right>
+"nnoremap <A-d> :m .+1<cr>==
+"nnoremap <A-u> :m .-2<cr>==
+"inoremap <A-d> <Esc>:m .+1<cr>==gi
+"inoremap <A-u> <Esc>:m .-2<cr>==gi
+"vnoremap <A-d> :m '>+1<cr>gv=gv
+"vnoremap <A-u> :m '<-2<cr>gv=gv
 
 " Quick window switching with Ctrl-h/j/k/l
 noremap  <C-h>  <C-w>h
@@ -479,21 +467,23 @@ noremap  <C-j>  <C-w>j
 noremap  <C-k>  <C-w>k
 noremap  <C-l>  <C-w>l
 
+" Movement in insert mode with Ctrl-h/j/k/l
+inoremap <C-k> <Up>
+inoremap <C-j> <Down>
+inoremap <C-h> <Left>
+inoremap <C-l> <Right>
+
 " Don't lose selection when shifting sidewards
 xnoremap <  <gv
 xnoremap >  >gv
 
-" Quick switching to alternate buffer
-nnoremap <silent> <leader>a :b#<cr>
-
 " Shortcuts for window handling
-"nnoremap <leader>r <C-w>r  " rotate windows
+nnoremap <leader>r <C-w>r  " rotate windows
 nnoremap <leader>w :call CloseCurrentWindow()<cr>:echo<cr>
-nnoremap <leader>o <C-w>o  " make current one the only window
+"nnoremap <leader>o <C-w>o  " make current one the only window
 
 " Disable highlighting of search results
-"nnoremap <silent> <leader><Space> :set hlsearch!<cr>
-nnoremap <silent><expr> <Leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
+nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
 
 " F1: Switch line numbering
 noremap <F1> :set number!<cr>:set number?<cr>
@@ -511,16 +501,17 @@ noremap <F4> :set wrap!<cr>:set wrap?<cr>
 noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
 
 " F6: Switch case sensitivity
-noremap <F6> :set ignorecase!<cr>:set ignorecase?<cr>
+"noremap <F6> :set ignorecase!<cr>:set ignorecase?<cr>
 
-" F7: FREE
-" F8: FREE
+" F6: Rename (LanguageClient_neovim)
+" F7: Find references (LanguageClient_neovim)
+" F8: Go to definition (LanguageClient_neovim)
 " F9: Find file in NERDTree (see below)
 
 " F10: Toggle text width
 noremap <silent> <F10> :call ToggleTextWidth()<cr>
 
-" F11: FREE
+" F11: usually mapped to 'full screen' by terminal emulator
 
 " F12: Source .vimrc
 noremap <silent> <F12> :source $MYVIMRC<cr>
@@ -536,10 +527,6 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
 " Plugin configurations
 "=======================================
-
-if exists('s:havf_sleuth')
-  let g:sleuth_automatic = 0
-endif
 
 if exists('s:have_sneak')
   let g:sneak#s_next = 1  " Enable sneak-clever-s. Press 's'/'S' again to go to next/previous match.
@@ -590,9 +577,6 @@ if exists('s:have_airline')
     let g:airline#extensions#tabline#enabled = 1
     let g:airline#extensions#tabline#show_splits = 1
     let g:airline#extensions#tabline#show_tabs = 1
-    if !exists('s:have_bufferline')
-      let g:airline#extensions#tabline#show_buffers = 1
-    endif
   endif
 
   if !exists('g:airline_symbols')
@@ -618,12 +602,6 @@ if exists('s:have_airline')
   let g:airline_symbols.whitespace = 'Ξ'
 endif
 
-if exists('s:have_bufferline')
-  if exists('s:have_airline')
-    let g:bufferline_echo = 0
-  endif
-endif
-
 if exists('s:have_fzf')
   if !exists('s:have_ctrlp')
     nnoremap <silent> <C-p> :FZF<cr>
@@ -647,6 +625,13 @@ if exists('s:have_ack')
   if executable('ag')
     let g:ackprg = 'ag --vimgrep'
   endif
+endif
+
+if exists('s:have_easy_align')
+  " Start interactive EasyAlign in visual mode (e.g. vipga)
+  xmap ga <Plug>(EasyAlign)
+  " Start interactive EasyAlign for a motion/text object (e.g. gaip)
+  nmap ga <Plug>(EasyAlign)
 endif
 
 if exists('s:have_nerdtree')
@@ -686,25 +671,6 @@ endif
 if exists('s:have_easyclip')
   nnoremap gm m
   let g:EasyClipAlwaysMoveCursorToEndOfPaste = 1
-else
-  " Map Y to behave like C, D
-  nmap Y y$
-endif
-
-if exists('s:have_ycm')
-  let g:ycm_confirm_extra_conf = 0
-  nnoremap <silent> <Leader>yg :YcmCompleter GoTo<cr>
-  nnoremap <silent> <Leader>yi :YcmCompleter GoToInclude<cr>>
-  nnoremap <silent> <Leader>yc :YcmCompleter GoToDeclaration<cr>
-  nnoremap <silent> <Leader>yf :YcmCompleter GoToDefinition<cr>
-  nnoremap <silent> <Leader>yt :YcmCompleter GetType<cr>
-  nnoremap <silent> <Leader>yd :YcmCompleter GetDoc<cr>
-  nnoremap <silent> <Leader>yx :YcmCompleter FixIt<cr>
-endif
-
-if exists('s:have_rtags')
-  let g:rtagsAutoLaunchRdm = 1
-  let g:rtagsExcludeSysHeaders = 1
 endif
 
 if exists('s:have_ale')
@@ -733,10 +699,6 @@ if exists('s:have_ale')
   let g:ale_cpp_gcc_options = s:ale_cpp_opts
   let g:ale_cpp_clang_options = s:ale_cpp_opts
   let g:ale_cpp_clangtidy_options = s:ale_cpp_opts
-
-  "if exists('s:have_ycm') && has_key(g:ale_linters, 'cpp')
-  "  let g:ycm_show_diagnostics_ui = 0  " Disable diagnostics when ALE is enabled for C and C++
-  "endif
 endif
 
 if exists('s:have_deoplete')
@@ -747,13 +709,14 @@ if exists('s:have_deoplete')
 endif
 
 if exists('s:have_language_client_neovim')
-  let g:LanguageClient_serverCommands = {
-    \ 'cpp': ['cquery', '--log-file=/tmp/cq.log'],
-    \ 'c': ['cquery', '--log-file=/tmp/cq.log'],
-    \ 'python': ['pyls'],
-    \ }
-  "let g:LanguageClient_serverCommands.cpp = ['cquery', '--log-file=/tmp/cq.log']
-  "let g:LanguageClient_serverCommands.c = ['cquery', '--log-file=/tmp/cq.log']
+  let g:LanguageClient_serverCommands = {}
+  if executable('cquery')
+    let g:LanguageClient_serverCommands.cpp = ['cquery', '--log-file=/tmp/cq.log']
+    let g:LanguageClient_serverCommands.c = ['cquery', '--log-file=/tmp/cq.log']
+  endif
+  if executable('pyls')
+    let g:LanguageClient_serverCommands.python = ['pyls']
+  endif
 
   let g:LanguageClient_loadSettings = 1
   let g:LanguageClient_settingsPath = $HOME . '/.config/language_client/settings.json'
@@ -761,22 +724,14 @@ if exists('s:have_language_client_neovim')
   set completefunc=LanguageClient#complete
   set formatexpr=LanguageClient_textDocument_rangeFormatting()
 
-  nnoremap <silent> K :call LanguageClient_textDocument_hover()<cr>
-  nnoremap <silent> gd :call LanguageClient_textDocument_definition()<cr>
-  nnoremap <silent> gr :call LanguageClient_textDocument_references()<cr>
-  nnoremap <silent> gx :call LanguageClient_textDocument_documentSymbol()<cr>
-  nnoremap <silent> <leader>r :call LanguageClient_textDocument_rename()<cr>
+  autocmd FileType c,cpp,python nnoremap <silent> K :call LanguageClient_textDocument_hover()<cr>
+  autocmd FileType c,cpp,python nnoremap <silent> <F6> :call LanguageClient_textDocument_rename()<cr>
+  autocmd FileType c,cpp,python nnoremap <silent> <F7> :call LanguageClient_textDocument_references()<cr>
+  autocmd FileType c,cpp,python nnoremap <silent> <F8> :call LanguageClient_textDocument_definition()<cr>
 endif
 
 if exists('s:have_goyo')
   let g:goyo_width = 120
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
-endif
-
-if exists('s:have_hardtime')
-  let g:hardtime_default_on = 1
-  let g:hardtime_ignore_quickfix = 1
-  let g:hardtime_allow_different_key = 1
-  let g:hardtime_maxcount = 2
 endif
