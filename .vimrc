@@ -6,15 +6,11 @@
 "
 " * $ cp .vimrc ~
 "
-" * If not present yet, the plugin manager vim-plug will be bootstrapped, and
-"   plugins will be auto-installed. See https://github.com/junegunn/vim-plug on
-"   how to use vim-plug.
+" * If not present yet, the plugin manager vim-plug will be bootstrapped.
+"   See https://github.com/junegunn/vim-plug on how to use vim-plug.
 "
 " * You can alter the list of plugins by editing the 's:plugin_categories' list
-"   below. Not all plugin categories are enabled by default, to keep the initial
-"   installation lightweight. You might want to enable more categories.
-"
-" * After installation of new plugins, just restart vim.
+"   below. After installation of new plugins, just restart vim.
 "
 " * All mentioned plugins will be installed from GitHub. Check their respective
 "   pages for functionality and documentation.
@@ -52,13 +48,15 @@ let s:plugin_categories  = ['colorschemes']
 let s:plugin_categories += ['basic']
 let s:plugin_categories += ['buffers']
 let s:plugin_categories += ['textsearch']
-"let s:plugin_categories += ['copypaste']
-"let s:plugin_categories += ['ui_additions']
-"let s:plugin_categories += ['filesearch']
-"let s:plugin_categories += ['sessions']
-"let s:plugin_categories += ['formatting']
-"let s:plugin_categories += ['devel']
-"let s:plugin_categories += ['devel_ext']
+
+let s:plugin_categories += ['copypaste']
+let s:plugin_categories += ['ui_additions']
+let s:plugin_categories += ['filesearch']
+let s:plugin_categories += ['sessions']
+let s:plugin_categories += ['formatting']
+let s:plugin_categories += ['devel']
+let s:plugin_categories += ['devel_ext']
+
 "let s:plugin_categories += ['google']
 "let s:plugin_categories += ['misc']
 
@@ -71,7 +69,7 @@ if has("unix") || has("macunix")
   if empty(glob('~/.vim/autoload/plug.vim'))
     silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
         \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+    "autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
   endif
 elseif has("win32")
   if empty(glob('~/vimfiles/autoload/plug.vim'))
@@ -106,13 +104,16 @@ if index(s:plugin_categories, 'basic') >= 0
   let s:have_localvimrc = 1
   Plug 'drzel/vim-split-line'
   let s:have_splitline = 1
+  if has("unix") || has("macunix")
+    Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
+  endif
+  Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
 endif
 
 if index(s:plugin_categories, 'buffers') >= 0
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let s:have_bbye = 1
   Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
-  "Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
 endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
@@ -157,6 +158,7 @@ if index(s:plugin_categories, 'filesearch') >= 0
   let s:have_nerdtree = 1
   Plug 'mileszs/ack.vim', { 'on': ['Ack'] }  " Wrapper for ack (grep-like tool)
   let s:have_ack = 1
+  "Plug 'jeetsukumaran/vim-filebeagle'
 endif
 
 if index(s:plugin_categories, 'sessions') >= 0
@@ -165,7 +167,6 @@ endif
 
 if index(s:plugin_categories, 'formatting') >= 0
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
-  "Plug 'godlygeek/tabular'               " Text alignment made easy
   Plug 'junegunn/vim-easy-align'         " Text alignment made easy
   let s:have_easy_align = 1
   Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
@@ -426,6 +427,10 @@ endif
 noremap j gj
 noremap k gk
 
+" Add empty lines via Enter/Leader-Enter in normal mode
+nnoremap <cr> o<Esc>
+nnoremap <leader><cr> O<Esc>
+
 " Scroll 5 lines up and down
 noremap <C-d> 5<C-d>
 noremap <C-u> 5<C-u>
@@ -437,7 +442,6 @@ if has('nvim')
   nnoremap <silent> <Tab> :bnext<cr>
   nnoremap <silent> <S-Tab> :bprevious<cr>
 endif
-
 
 " Quick switching to alternate buffer
 noremap <silent> <A-l> :b#<cr>
@@ -481,6 +485,18 @@ xnoremap >  >gv
 nnoremap <leader>r <C-w>r  " rotate windows
 nnoremap <leader>w :call CloseCurrentWindow()<cr>:echo<cr>
 "nnoremap <leader>o <C-w>o  " make current one the only window
+
+" Window switching using <leader><number> (Source: http://stackoverflow.com/a/6404246/151007)
+let i = 1
+while i <= 9
+  execute 'nnoremap <silent> <leader>'.i.' :'.i.'wincmd w<CR>'
+  let i = i + 1
+endwhile
+
+" Use | and _ to split windows (while preserving original behaviour of [count]bar and [count]_).
+" (http://howivim.com/2016/andy-stewart/)
+nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><CR>"
+nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<CR>"
 
 " Disable highlighting of search results
 nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
@@ -577,29 +593,8 @@ if exists('s:have_airline')
     let g:airline#extensions#tabline#enabled = 1
     let g:airline#extensions#tabline#show_splits = 1
     let g:airline#extensions#tabline#show_tabs = 1
+    let g:airline#extensions#tabline#formatter = 'default'
   endif
-
-  if !exists('g:airline_symbols')
-    let g:airline_symbols = {}
-  endif
-  " unicode symbols
-  let g:airline_left_sep = '»'
-  let g:airline_left_sep = '▶'
-  let g:airline_right_sep = '«'
-  let g:airline_right_sep = '◀'
-  let g:airline_symbols.crypt = '🔒'
-  let g:airline_symbols.linenr = '␊'
-  let g:airline_symbols.linenr = '␤'
-  let g:airline_symbols.linenr = '¶'
-  let g:airline_symbols.maxlinenr = '☰'
-  let g:airline_symbols.maxlinenr = ''
-  let g:airline_symbols.branch = '⎇'
-  let g:airline_symbols.paste = 'ρ'
-  let g:airline_symbols.paste = 'Þ'
-  let g:airline_symbols.paste = '∥'
-  let g:airline_symbols.spell = 'Ꞩ'
-  let g:airline_symbols.notexists = '∄'
-  let g:airline_symbols.whitespace = 'Ξ'
 endif
 
 if exists('s:have_fzf')
@@ -721,13 +716,15 @@ if exists('s:have_language_client_neovim')
   let g:LanguageClient_loadSettings = 1
   let g:LanguageClient_settingsPath = $HOME . '/.config/language_client/settings.json'
   let g:LanguageClient_diagnosticsEnable = 0
-  set completefunc=LanguageClient#complete
-  set formatexpr=LanguageClient_textDocument_rangeFormatting()
 
-  autocmd FileType c,cpp,python nnoremap <silent> K :call LanguageClient_textDocument_hover()<cr>
-  autocmd FileType c,cpp,python nnoremap <silent> <F6> :call LanguageClient_textDocument_rename()<cr>
-  autocmd FileType c,cpp,python nnoremap <silent> <F7> :call LanguageClient_textDocument_references()<cr>
-  autocmd FileType c,cpp,python nnoremap <silent> <F8> :call LanguageClient_textDocument_definition()<cr>
+  set completefunc=LanguageClient#complete
+
+  autocmd FileType c,cpp,python setlocal formatexpr=LanguageClient_textDocument_rangeFormatting()
+
+  autocmd FileType c,cpp,python nnoremap <buffer> <silent> K :call LanguageClient_textDocument_hover()<cr>
+  autocmd FileType c,cpp,python nnoremap <buffer> <silent> <F6> :call LanguageClient_textDocument_rename()<cr>
+  autocmd FileType c,cpp,python nnoremap <buffer> <silent> <F7> :call LanguageClient_textDocument_references()<cr>
+  autocmd FileType c,cpp,python nnoremap <buffer> <silent> <F8> :call LanguageClient_textDocument_definition()<cr>
 endif
 
 if exists('s:have_goyo')
