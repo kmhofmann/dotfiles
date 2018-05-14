@@ -49,7 +49,7 @@ let s:plugin_categories += ['basic']
 let s:plugin_categories += ['buffers']
 let s:plugin_categories += ['textsearch']
 
-let s:plugin_categories += ['copypaste']
+let s:plugin_categories += ['textediting']
 let s:plugin_categories += ['ui_additions']
 let s:plugin_categories += ['filesearch']
 let s:plugin_categories += ['sessions']
@@ -98,7 +98,7 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
   Plug 'tpope/vim-surround'              " 'surrounding' motion
-  " Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (**** CONFLICTS WITH VIM-SNEAK ***)
+  Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (conflicts with vim-sneak)
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
   let s:have_localvimrc = 1
@@ -122,19 +122,22 @@ if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
   let s:have_grepper = 1
   Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
-  Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
-  let s:have_sneak = 1
+  "Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
+  "let s:have_sneak = 1
 endif
 
-if index(s:plugin_categories, 'copypaste') >= 0
+if index(s:plugin_categories, 'textediting') >= 0
   Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
   let s:have_easyclip = 1
+  Plug 'wincent/scalpel'                 " Faster within-file word replacement
 endif
 
 if index(s:plugin_categories, 'ui_additions') >= 0
-  Plug 'vim-airline/vim-airline'         " Status/tabline
-  Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
-  let s:have_airline = 1
+  "Plug 'vim-airline/vim-airline'         " Status/tabline
+  "Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
+  "let s:have_airline = 1
+  Plug 'itchyny/lightline.vim'           " Statusline
+  let s:have_lightline = 1
   Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
   let s:have_buffergator = 1
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
@@ -262,6 +265,7 @@ set swapfile
 set nobackup
 set nowritebackup
 
+set linebreak
 set nolist
 set listchars=tab:>-,trail:~,extends:>,precedes:<
 
@@ -354,16 +358,12 @@ if has("win32") && has("gui_running")
   set guifont=Consolas:h11
 endif
 
-" Allow cursor change in tmux mode
-if empty($TMUX)
-  let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-  let &t_EI = "\<Esc>]50;CursorShape=0\x7"
-  let &t_SR = "\<Esc>]50;CursorShape=2\x7"
-else
-  let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
-  let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
-  let &t_SR = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=2\x7\<Esc>\\"
-endif
+augroup MichaelAutocmnds
+  " Resize splits when window gets resized
+  autocmd VimResized * execute "normal! \<C-w>="
+  " Disable paste mode when leaving insert mode
+  autocmd InsertLeave * set nopaste
+augroup END
 
 " Functions for later use
 "=======================================
@@ -407,13 +407,34 @@ let mapleader = "\<Space>"
 inoremap jj <Esc>
 "inoremap jk <Esc>
 
-" Disable Shift-K
+" Disable K (might be mapped for LanguageClient_neovim)
 if !exists('s:have_language_client_neovim')
-  noremap <S-k> <nop>
+  noremap K <nop>
 endif
+
+" Disable Q (to be mapped sensibly otherwise?)
+nnoremap Q <nop>
+
+" Disable ZZ and ZQ
+nnoremap ZZ <nop>
+nnoremap ZQ <nop>
+
+" Fast search within the file (results opening in quickfix list)
+nnoremap <C-s> :Ack  %<Left><Left>
+" Fast global search (results opening in quickfix list)
+nnoremap <C-q> :Ack<Space>
 
 " Allow the . to execute once for each line of a visual selection
 vnoremap . :normal .<cr>
+
+" Possibly faster file-level word replacement (https://youtu.be/7Bx_mLDBtRc)
+nnoremap c* *Ncgn
+
+" Very magic search /? (everything is magic unless escaped)
+nnoremap / /\v
+vnoremap / /\v
+nnoremap ? ?\v
+vnoremap ? ?\v
 
 if !exists('s:have_easyclip')
   " Paste from yank register with <leader>p/P
@@ -489,17 +510,23 @@ nnoremap <leader>w :call CloseCurrentWindow()<cr>:echo<cr>
 " Window switching using <leader><number> (Source: http://stackoverflow.com/a/6404246/151007)
 let i = 1
 while i <= 9
-  execute 'nnoremap <silent> <leader>'.i.' :'.i.'wincmd w<CR>'
+  execute 'nnoremap <silent> <leader>'.i.' :'.i.'wincmd w<cr>'
   let i = i + 1
 endwhile
 
 " Use | and _ to split windows (while preserving original behaviour of [count]bar and [count]_).
 " (http://howivim.com/2016/andy-stewart/)
-nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><CR>"
-nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<CR>"
+nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><cr>"
+nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<cr>"
 
 " Disable highlighting of search results
 nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
+
+" Cursor keys for nicer quickfix list handling
+nnoremap <silent> <Up> :cprevious<cr>
+nnoremap <silent> <Down> :cnext<cr>
+nnoremap <silent> <Left> :cpfile<cr>
+nnoremap <silent> <Right> :cnfile<cr>
 
 " F1: Switch line numbering
 noremap <F1> :set number!<cr>:set number?<cr>
@@ -549,7 +576,11 @@ if exists('s:have_sneak')
 endif
 
 if exists('s:have_splitline')
-  nnoremap <leader>s :SplitLine<CR>
+  if exists('s:have_sneak')
+    nnoremap <leader>s :SplitLine<cr>
+  else
+    nnoremap S :SplitLine<cr>
+  endif
 endif
 
 if exists('s:have_grepper')
@@ -583,11 +614,11 @@ if exists('s:have_localvimrc')
 endif
 
 if exists('s:have_airline')
-  let airline_themes = {
+  let s:airline_themes = {
       \'base16-solarized-dark': 'base16_solarized',
       \'base16-monokai': 'base16_monokai'}
-  if exists('g:colors_name') && has_key(airline_themes, g:colors_name)
-    let g:airline_theme=airline_themes[g:colors_name]
+  if exists('g:colors_name') && has_key(s:airline_themes, g:colors_name)
+    let g:airline_theme=s:airline_themes[g:colors_name]
   endif
   if exists('s:show_airline_tabs') && (s:show_airline_tabs == 1)
     let g:airline#extensions#tabline#enabled = 1
@@ -597,17 +628,25 @@ if exists('s:have_airline')
   endif
 endif
 
+if exists('s:have_lightline')
+  let g:lightline = {
+      \ 'colorscheme': 'molokai',
+      \ }
+endif
+
 if exists('s:have_fzf')
   if !exists('s:have_ctrlp')
     nnoremap <silent> <C-p> :FZF<cr>
   endif
-  nnoremap <silent> <leader>ff :Files<CR>
-  nnoremap <silent> <leader>fb :Buffers<CR>
-  nnoremap <silent> <leader>fw :Windows<CR>
-  nnoremap <silent> <leader>fm :Marks<CR>
-  nnoremap <silent> <leader>fh :History<CR>
-  nnoremap <silent> <leader>fl :Lines<CR>
-  nnoremap <silent> <leader>fc :Commits<CR>
+  nnoremap <silent> <leader>ff :Files<cr>
+  nnoremap <silent> <leader>fb :Buffers<cr>
+  nnoremap <silent> <leader>fw :Windows<cr>
+  nnoremap <silent> <leader>fm :Marks<cr>
+  nnoremap <silent> <leader>fh :History<cr>
+  nnoremap <silent> <leader>fl :Lines<cr>
+  nnoremap <silent> <leader>fc :Commits<cr>
+
+  nnoremap <silent> \ :Buffers<cr>
 endif
 
 if exists('s:have_ctrlp')
