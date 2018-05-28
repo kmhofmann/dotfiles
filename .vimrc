@@ -87,6 +87,7 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'nanotech/jellybeans.vim'
   Plug 'altercation/vim-colors-solarized'
   Plug 'google/vim-colorscheme-primary'
+  Plug 'larsbs/vimterial_dark'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
@@ -311,13 +312,17 @@ endif
 
 if index(s:plugin_categories, 'colorschemes') >= 0
   let g:solarized_termcolors=256 " Use the inaccurate 256 color scheme for solarized.
+  if has('nvim')
+    set termguicolors
+  endif
+
+  colorscheme molokai
+
   " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
   if !has("gui_running") && filereadable(expand("~/.vimrc_background"))
     let base16colorspace=256
     let g:base16_shell_path="~/.config/base16-shell/scripts/"
     source ~/.vimrc_background
-  else
-    colorscheme molokai
   endif
 endif
 
