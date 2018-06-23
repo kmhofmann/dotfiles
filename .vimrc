@@ -86,8 +86,13 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'euclio/vim-nocturne'
   Plug 'nanotech/jellybeans.vim'
   Plug 'altercation/vim-colors-solarized'
+  Plug 'lifepillar/vim-solarized8'
   Plug 'google/vim-colorscheme-primary'
   Plug 'larsbs/vimterial_dark'
+  Plug 'bluz71/vim-moonfly-colors'
+  Plug 'dracula/vim', { 'as': 'dracula' }
+  Plug 'TroyFletcher/vim-colors-synthwave'
+  Plug 'rhysd/vim-color-spring-night'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
@@ -123,6 +128,7 @@ if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
   let s:have_grepper = 1
   Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
+  let s:have_clever_f = 1
   "Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
   "let s:have_sneak = 1
 endif
@@ -171,6 +177,7 @@ endif
 
 if index(s:plugin_categories, 'formatting') >= 0
   Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
+  let s:have_vim_stripper = 1
   Plug 'junegunn/vim-easy-align'         " Text alignment made easy
   let s:have_easy_align = 1
   Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
@@ -179,6 +186,7 @@ endif
 if index(s:plugin_categories, 'devel') >= 0
   Plug 'scrooloose/nerdcommenter'        " Commenting code
   Plug 'tpope/vim-fugitive'              " Git wrapper
+  let s:have_fugitive = 1
   Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'airblade/vim-gitgutter'          " Show visual git diff in the gutter
@@ -190,6 +198,10 @@ if index(s:plugin_categories, 'devel_ext') >= 0
   if (v:version >= 800)
     Plug 'w0rp/ale'                      " Asynchronous Lint Engine
     let s:have_ale = 1
+    if exists('s:have_lightline')
+      Plug 'maximbaz/lightline-ale'      " ALE indicator for Lightline
+      let s:have_lightline_ale = 1
+    endif
 
     if !has("win32")
       if has('nvim')
@@ -310,6 +322,9 @@ if !has("gui_running") && !has('nvim')
   set t_Co=256
 endif
 
+" let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+" let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+
 if index(s:plugin_categories, 'colorschemes') >= 0
   let g:solarized_termcolors=256 " Use the inaccurate 256 color scheme for solarized.
   if has('nvim')
@@ -336,7 +351,7 @@ set hidden              " A buffer becomes hidden when it is abandoned
 set showcmd             " Show command in bottom bar
 set ruler               " Always show current position
 set nowrap              " Don't wrap overly long lines
-set wildmode=longest,list  " Visual autocomplete for command menu
+set wildmode=list:longest  " Visual autocomplete for command menu
 " set wildmenu
 " set wildmode=full
 set lazyredraw          " Redraw only when we need to.
@@ -435,12 +450,6 @@ vnoremap . :normal .<cr>
 " Possibly faster file-level word replacement (https://youtu.be/7Bx_mLDBtRc)
 nnoremap c* *Ncgn
 
-" Very magic search /? (everything is magic unless escaped)
-nnoremap / /\v
-vnoremap / /\v
-nnoremap ? ?\v
-vnoremap ? ?\v
-
 if !exists('s:have_easyclip')
   " Paste from yank register with <leader>p/P
   noremap <leader>p "0p
@@ -453,21 +462,23 @@ endif
 noremap j gj
 noremap k gk
 
-" Add empty lines via Enter/Leader-Enter in normal mode
-nnoremap <cr> o<Esc>
-nnoremap <leader><cr> O<Esc>
-
 " Scroll 5 lines up and down
 noremap <C-d> 5<C-d>
 noremap <C-u> 5<C-u>
 
+" When using clever-f, , and ; can be remapped to something else
+if exists('s:have_clever_f')
+  if exists('s:have_fzf')
+    nnoremap <silent> , :Buffers<cr>
+  elseif exists('s:have_buffergator')
+    nnoremap <silent> , :BuffergatorOpen<cr>
+  endif
+  nnoremap <silent> ; :b#<cr>
+endif
+
 " Switch to previous/next buffer
 noremap <silent> <A-j> :bprevious<cr>
 noremap <silent> <A-k> :bnext<cr>
-if has('nvim')
-  nnoremap <silent> <Tab> :bnext<cr>
-  nnoremap <silent> <S-Tab> :bprevious<cr>
-endif
 
 " Quick switching to alternate buffer
 noremap <silent> <A-l> :b#<cr>
@@ -594,6 +605,10 @@ if exists('s:have_grepper')
   xmap gs <plug>(GrepperOperator)
 endif
 
+if exists('s:have_clever_f')
+  let g:clever_f_across_no_line = 1  " only search on current line
+endif
+
 if exists('s:have_listtoggle')
   " - Height of the location list window
   let g:lt_height = 10
@@ -634,9 +649,36 @@ if exists('s:have_airline')
 endif
 
 if exists('s:have_lightline')
-  let g:lightline = {
-      \ 'colorscheme': 'molokai',
+  let g:lightline = {}
+
+  " Colorscheme options include molokai, solarized, jellybeans, wombat, one
+  let g:lightline.colorscheme = 'solarized'
+
+  let g:lightline.active = {
+    \   'left': [ [ 'mode', 'paste' ], [ 'readonly', 'filename', 'modified', 'gitbranch' ] ],
+    \   'right': [ [ 'lineinfo' ], [ 'percent' ], [ 'fileformat', 'fileencoding', 'filetype' ],
+    \              [ 'linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok' ] ],
+    \ }
+
+  let g:lightline.component_expand = {
+    \   'linter_checking': 'lightline#ale#checking',
+    \   'linter_errors': 'lightline#ale#errors',
+    \   'linter_warnings': 'lightline#ale#warnings',
+    \   'linter_ok': 'lightline#ale#ok',
+    \ }
+
+  let g:lightline.component_type = {
+    \   'linter_checking': 'left',
+    \   'linter_errors': 'error',
+    \   'linter_warnings': 'warning',
+    \   'linter_ok': 'left',
+    \ }
+
+  if exists('s:have_fugitive')
+    let g:lightline.component_function = {
+      \   'gitbranch': 'fugitive#head'
       \ }
+  endif
 endif
 
 if exists('s:have_fzf')
@@ -664,6 +706,10 @@ if exists('s:have_ack')
   if executable('ag')
     let g:ackprg = 'ag --vimgrep'
   endif
+endif
+
+if exists('s:have_vim_stripper')
+  let g:StripperNoStripOnSave = 1
 endif
 
 if exists('s:have_easy_align')
@@ -726,7 +772,7 @@ if exists('s:have_ale')
         \ 'cpp': ['clang', 'clangtidy', 'g++'],
         \ }
   let g:ale_open_list = 0
-  let g:ale_lint_delay = 1000
+  let g:ale_lint_delay = 1500
 
   let g:ale_python_mypy_options = '--ignore-missing-imports'
 
