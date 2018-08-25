@@ -48,17 +48,20 @@ let s:plugin_categories  = ['colorschemes']
 let s:plugin_categories += ['basic']
 let s:plugin_categories += ['buffers']
 let s:plugin_categories += ['textsearch']
-
 let s:plugin_categories += ['textediting']
+let s:plugin_categories += ['snippets']
 let s:plugin_categories += ['ui_additions']
 let s:plugin_categories += ['filesearch']
 let s:plugin_categories += ['sessions']
 let s:plugin_categories += ['formatting']
 let s:plugin_categories += ['devel']
 let s:plugin_categories += ['devel_ext']
-
+let s:plugin_categories += ['misc']
 "let s:plugin_categories += ['google']
-"let s:plugin_categories += ['misc']
+
+let s:colorscheme_use_base16 = 1
+let s:colorscheme = 'molokai'
+"let s:colorscheme = 'solarized8'
 
 " Set these options to your liking
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
@@ -93,6 +96,7 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'dracula/vim', { 'as': 'dracula' }
   Plug 'TroyFletcher/vim-colors-synthwave'
   Plug 'rhysd/vim-color-spring-night'
+  Plug 'KKPMW/sacredforest-vim'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
@@ -114,6 +118,7 @@ if index(s:plugin_categories, 'basic') >= 0
     Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
   endif
   Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
+  Plug 'dhruvasagar/vim-zoom'            " Easy 'zoom' of current window, similar to the feature in tmux
 endif
 
 if index(s:plugin_categories, 'buffers') >= 0
@@ -137,6 +142,15 @@ if index(s:plugin_categories, 'textediting') >= 0
   Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
   let s:have_easyclip = 1
   Plug 'wincent/scalpel'                 " Faster within-file word replacement
+  Plug 'AndrewRadev/sideways.vim'        " Move function arguments sideways
+  let s:have_sideways = 1
+endif
+
+if index(s:plugin_categories, 'snippets') >= 0
+    Plug 'SirVer/ultisnips'
+    let s:have_ultisnips = 1
+    "Plug 'honza/vim-snippets'
+    "let s:have_vim_snippets = 1
 endif
 
 if index(s:plugin_categories, 'ui_additions') >= 0
@@ -189,8 +203,9 @@ if index(s:plugin_categories, 'devel') >= 0
   let s:have_fugitive = 1
   Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'             " Changes working directory to project root
-  Plug 'airblade/vim-gitgutter'          " Show visual git diff in the gutter
-  Plug 'jmcantrell/vim-virtualenv'       " Improved working with virtualenvs
+  Plug 'mhinz/vim-signify'               " Show visual git diff in the gutter
+  let s:have_signify = 1
+  Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
 endif
 
@@ -219,6 +234,14 @@ if index(s:plugin_categories, 'devel_ext') >= 0
   endif
 endif
 
+if index(s:plugin_categories, 'misc') >= 0
+  Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
+  Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
+  let s:have_goyo = 1
+  Plug 'HendrikPetertje/vimify', { 'on': ['Spotify', 'SpToggle', 'SpPause', 'SpPlay', 'SpNext', 'SpPrevious', 'SpSelect', 'SpSearch'] }
+  let s:have_vimify = 1
+endif
+
 if index(s:plugin_categories, 'google') >= 0
   " Some of these are inter-dependent, hence the separate category
   Plug 'google/vim-searchindex'
@@ -227,12 +250,6 @@ if index(s:plugin_categories, 'google') >= 0
   let s:have_glaive = 1
   Plug 'google/vim-codefmt'              " Trigger code formatting engines
   let s:have_codefmt = 1
-endif
-
-if index(s:plugin_categories, 'misc') >= 0
-  Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
-  Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
-  let s:have_goyo = 1
 endif
 
 call plug#end()
@@ -247,7 +264,7 @@ endif
 
 set timeoutlen=500
 set ttimeoutlen=10
-set updatetime=500
+set updatetime=250
 
 set history=500       " Sets how many lines of history VIM has to remember
 set autoread          " Set to auto read when a file is changed from the outside
@@ -310,6 +327,9 @@ set ignorecase          " Ignore case when searching
 set smartcase           " When searching try to be smart about cases
 set magic               " For regular expressions turn magic on
 set infercase           " Infer case for completions
+if has('nvim')
+  set inccommand=nosplit
+endif
 
 " Color scheme
 "=======================================
@@ -331,13 +351,13 @@ if index(s:plugin_categories, 'colorschemes') >= 0
     set termguicolors
   endif
 
-  colorscheme molokai
-
-  " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
-  if !has("gui_running") && filereadable(expand("~/.vimrc_background"))
+  if (s:colorscheme_use_base16 && !has("gui_running") && filereadable(expand("~/.vimrc_background")))
+    " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
     let base16colorspace=256
     let g:base16_shell_path="~/.config/base16-shell/scripts/"
     source ~/.vimrc_background
+  else
+    execute 'colorscheme ' . s:colorscheme
   endif
 endif
 
@@ -649,10 +669,22 @@ if exists('s:have_airline')
 endif
 
 if exists('s:have_lightline')
+  let s:lightline_colorschemes = ['wombat', 'solarized', 'powerline', 'jellybeans', 'Tomorrow', 'Tomorrow_Night',
+    \ 'Tomorrow_Night_Blue', 'Tomorrow_Night_Eighties', 'PaperColor', 'seoul256', 'landscape', 'one', 'darcula',
+    \ 'molokai', 'materia', 'material', 'OldHope', 'nord', '16color', 'deus']  " According to its doc
+
   let g:lightline = {}
 
   " Colorscheme options include molokai, solarized, jellybeans, wombat, one
-  let g:lightline.colorscheme = 'solarized'
+  if (s:colorscheme =~ 'solarized' || s:colorscheme =~ 'spring-night')
+    let g:lightline.colorscheme = 'solarized'
+  elseif (s:colorscheme =~ 'moonfly')
+    let g:lightline.colorscheme = 'jellybeans'
+  elseif (s:colorscheme =~ 'dracula')
+    let g:lightline.colorscheme = 'darcula'
+  elseif (index(s:lightline_colorschemes, s:colorscheme) >= 0)
+    let g:lightline.colorscheme = s:colorscheme
+  endif
 
   let g:lightline.active = {
     \   'left': [ [ 'mode', 'paste' ], [ 'readonly', 'filename', 'modified', 'gitbranch' ] ],
@@ -679,6 +711,11 @@ if exists('s:have_lightline')
       \   'gitbranch': 'fugitive#head'
       \ }
   endif
+endif
+
+if exists('s:have_signify')
+  let g:signify_vcs_list = ['git']
+  let g:signify_realtime = 1
 endif
 
 if exists('s:have_fzf')
@@ -758,6 +795,11 @@ if exists('s:have_easyclip')
   let g:EasyClipAlwaysMoveCursorToEndOfPaste = 1
 endif
 
+if exists('s:have_sideways')
+  nnoremap g< :SidewaysLeft<cr>
+  nnoremap g> :SidewaysRight<cr>
+endif
+
 if exists('s:have_ale')
   " - Enable some linters. Note that for proper C and C++ support, one should provide a .lvimrc file in the project
   "   root directory, with the proper g:ale_c??_[clang|g++]_options settings. Basic options are set here, but they
@@ -821,4 +863,8 @@ if exists('s:have_goyo')
   let g:goyo_width = 120
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
+endif
+
+if exists('s:have_vimify')
+  let g:spotify_token='YjBjMDAxOGNhZmJjNDgwNjgxNDg4MTQ2ZTkzNmIwNGU6NDQzMDQ0OWZhNDA5NDQzNGFhNjE2MGY2NTllODA2OWU='
 endif
