@@ -258,9 +258,10 @@ endif
 " General
 "=======================================
 
-set timeoutlen=500
+set timeoutlen=1000
 set ttimeoutlen=10
-set updatetime=250
+set updatetime=500    " Time until CursorHold autocommand is triggered (when nothing is typed).
+                      " Also affects swapfile writing.
 
 set history=500       " Sets how many lines of history VIM has to remember
 set autoread          " Set to auto read when a file is changed from the outside
@@ -287,25 +288,25 @@ if has("persistent_undo")
   set undofile
 endif
 
-set swapfile
-set nobackup
-set nowritebackup
+set swapfile       " Use a swapfile for the buffer
+set nobackup       " Don't keep backups around
+set nowritebackup  " Don't make backups before overwriting a file
 
-set linebreak
-set nolist
-set listchars=tab:>-,trail:~,extends:>,precedes:<
+set linebreak      " Wrap long lines by default (for display purposes only)
+set nolist         " Don't display list characters by default
+set listchars=tab:>-,trail:~,extends:>,precedes:<   " Set of list characters
 
 " Tabbing and indentation
 "=======================================
 
 set tabstop=8       " Number of visual spaces per TAB
 set softtabstop=2   " Number of spaces in tab when editing
-set shiftwidth=2
+set shiftwidth=2    " Number of spaces to use for each step of (auto)indent
 set shiftround      " Always indent by multiple of shiftwidth
 set smarttab        " Be smart when using tabs
 set expandtab       " Tabs are spaces
-set autoindent
-set nojoinspaces
+set autoindent      " Copy indent from current line when starting a new line
+set nojoinspaces    " Do not insert two spaces when using join command (J), just one
 
 autocmd Filetype python setlocal softtabstop=4 shiftwidth=4 colorcolumn=120 expandtab
 autocmd Filetype cpp    setlocal softtabstop=2 shiftwidth=2 colorcolumn=120 expandtab
@@ -324,7 +325,7 @@ set smartcase           " When searching try to be smart about cases
 set magic               " For regular expressions turn magic on
 set infercase           " Infer case for completions
 if has('nvim')
-  set inccommand=nosplit
+  set inccommand=nosplit   " Shows the effects of a command incrementally, as you type
 endif
 
 " Color scheme
@@ -337,9 +338,6 @@ if !has("gui_running") && !has('nvim')
   set term=screen-256color
   set t_Co=256
 endif
-
-" let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
-" let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
 
 if index(s:plugin_categories, 'colorschemes') >= 0
   let g:solarized_termcolors=256 " Use the inaccurate 256 color scheme for solarized.
