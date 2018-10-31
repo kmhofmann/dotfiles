@@ -18,18 +18,17 @@
 " * The LanguageClient-neovim plugin can make use of several language servers,
 "   according to the Language Server Protocol (LSP).
 "   See also http://langserver.org/.
-"   Below, 'cquery' and 'python-language-server' are preconfigured.
+"   Below, 'ccls' and 'python-language-server' are preconfigured.
 "   To install them on the system (on a per-user level), perform the following
 "   steps (or similar):
-"   - Install cquery:
-"     $ git clone --recursive https://github.com/cquery-project/cquery.git
-"     $ mkdir -p ./cquery/build && cd ./cquery/build
+"   - Install ccls:
+"     $ git clone --recursive https://github.com/MaskRay/ccls.git
+"     $ mkdir -p ./ccls/build && cd ./ccls/build
 "     $ cmake -DCMAKE_BUILD_TYPE=Release \
-"             -DCMAKE_INSTALL_PREFIX=$HOME/local/cquery \
-"             -DCMAKE_EXPORT_COMPILE_COMMANDS=YES \
+"             -DCMAKE_INSTALL_PREFIX=$HOME/local/ccls \
 "             ..
 "     $ make -j$(nproc) && make install
-"     - Add $HOME/local/cquery/bin to the $PATH.
+"     - Add $HOME/local/ccls/bin to the $PATH.
 "   - Install python-language-server:
 "     $ pip install --user --upgrade python-language-server
 "     $ pip install --user --upgrade 'python-language-server[all]'
@@ -65,7 +64,7 @@ let s:colorscheme = 'molokai'
 
 " Set these options to your liking
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
-let s:show_airline_tabs = 1
+"let s:show_airline_tabs = 1
 
 " Bootstrap vim-plug automatically, if not already present
 if has("unix") || has("macunix")
@@ -96,7 +95,6 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'dracula/vim', { 'as': 'dracula' }
   Plug 'TroyFletcher/vim-colors-synthwave'
   Plug 'rhysd/vim-color-spring-night'
-  Plug 'KKPMW/sacredforest-vim'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
@@ -118,7 +116,8 @@ if index(s:plugin_categories, 'basic') >= 0
     Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
   endif
   Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
-  Plug 'dhruvasagar/vim-zoom'            " Easy 'zoom' of current window, similar to the feature in tmux
+  "Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
+  "let s:have_vim_markbar = 1
 endif
 
 if index(s:plugin_categories, 'buffers') >= 0
@@ -130,12 +129,12 @@ endif
 if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
   Plug 'haya14busa/is.vim'               " Improved incremental search
-  Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
-  let s:have_grepper = 1
-  Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
-  let s:have_clever_f = 1
   "Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
   "let s:have_sneak = 1
+  Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
+  let s:have_clever_f = 1
+  Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
+  let s:have_grepper = 1
 endif
 
 if index(s:plugin_categories, 'textediting') >= 0
@@ -180,13 +179,11 @@ if index(s:plugin_categories, 'filesearch') >= 0
   Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
   Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
   let s:have_nerdtree = 1
-  Plug 'mileszs/ack.vim', { 'on': ['Ack'] }  " Wrapper for ack (grep-like tool)
-  let s:have_ack = 1
   "Plug 'jeetsukumaran/vim-filebeagle'
 endif
 
 if index(s:plugin_categories, 'sessions') >= 0
-  Plug 'tpope/vim-obsession'             " Easier session handling
+  Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }             " Easier session handling
 endif
 
 if index(s:plugin_categories, 'formatting') >= 0
@@ -213,6 +210,7 @@ if index(s:plugin_categories, 'devel_ext') >= 0
   if (v:version >= 800)
     Plug 'w0rp/ale'                      " Asynchronous Lint Engine
     let s:have_ale = 1
+
     if exists('s:have_lightline')
       Plug 'maximbaz/lightline-ale'      " ALE indicator for Lightline
       let s:have_lightline_ale = 1
@@ -238,8 +236,6 @@ if index(s:plugin_categories, 'misc') >= 0
   Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
   Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
   let s:have_goyo = 1
-  Plug 'HendrikPetertje/vimify', { 'on': ['Spotify', 'SpToggle', 'SpPause', 'SpPlay', 'SpNext', 'SpPrevious', 'SpSelect', 'SpSearch'] }
-  let s:have_vimify = 1
 endif
 
 if index(s:plugin_categories, 'google') >= 0
@@ -366,7 +362,7 @@ endif
 
 set backspace=eol,start,indent  " Configure backspace so it acts as it should act
 set laststatus=2        " Always show the status line
-set scrolloff=5         " Set 5 lines to the cursor - when moving vertically using j/k
+set scrolloff=0         " Set 0 lines to the cursor - when moving vertically using j/k
 set hidden              " A buffer becomes hidden when it is abandoned
 set showcmd             " Show command in bottom bar
 set ruler               " Always show current position
@@ -437,6 +433,15 @@ function! CloseCurrentWindow()
   endif
 endfunction
 
+function! DeleteAllRegisters()
+  let regs=split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/-"', '\zs')
+  for r in regs
+    call setreg(r, [])
+  endfor
+endfunction
+
+command! DeleteRegisters silent :call DeleteAllRegisters()
+
 " Key mappings
 "=======================================
 
@@ -458,11 +463,6 @@ nnoremap Q <nop>
 " Disable ZZ and ZQ
 nnoremap ZZ <nop>
 nnoremap ZQ <nop>
-
-" Fast search within the file (results opening in quickfix list)
-nnoremap <C-s> :Ack  %<Left><Left>
-" Fast global search (results opening in quickfix list)
-nnoremap <C-q> :Ack<Space>
 
 " Allow the . to execute once for each line of a visual selection
 vnoremap . :normal .<cr>
@@ -552,8 +552,9 @@ endwhile
 
 " Use | and _ to split windows (while preserving original behaviour of [count]bar and [count]_).
 " (http://howivim.com/2016/andy-stewart/)
-nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><cr>"
-nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<cr>"
+" (currently deactivated because of unwanted interactions e.g. with 'f_' when '_' is not contained in line)
+"nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><cr>"
+"nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<cr>"
 
 " Disable highlighting of search results
 nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
@@ -619,10 +620,23 @@ if exists('s:have_splitline')
   endif
 endif
 
+if exists('s:have_vim_markbar')
+  map <Leader>m <Plug>ToggleMarkbar
+  let g:markbar_width = 40
+  let g:markbar_num_lines_context = 3
+  "let g:markbar_marks_to_display = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+endif
+
 if exists('s:have_grepper')
   " Maps the Grepper operator for normal and visual mode
   nmap gs <plug>(GrepperOperator)
   xmap gs <plug>(GrepperOperator)
+  let g:grepper = {'tools': ['rg', 'ag', 'ack', 'grep', 'findstr', 'pt', 'git']}
+
+  " Fast search within the file (results opening in quickfix list)
+  nnoremap <C-s> :Grepper -buffer -query 
+  " Fast global search (results opening in quickfix list)
+  nnoremap <C-q> :Grepper -query 
 endif
 
 if exists('s:have_clever_f')
@@ -738,13 +752,6 @@ if exists('s:have_ctrlp')
   let g:ctrlp_cmd = 'CtrlPMixed'
 endif
 
-if exists('s:have_ack')
-  " - Use ag with :Ack, if available
-  if executable('ag')
-    let g:ackprg = 'ag --vimgrep'
-  endif
-endif
-
 if exists('s:have_vim_stripper')
   let g:StripperNoStripOnSave = 1
 endif
@@ -837,9 +844,9 @@ endif
 
 if exists('s:have_language_client_neovim')
   let g:LanguageClient_serverCommands = {}
-  if executable('cquery')
-    let g:LanguageClient_serverCommands.cpp = ['cquery', '--log-file=/tmp/cq.log']
-    let g:LanguageClient_serverCommands.c = ['cquery', '--log-file=/tmp/cq.log']
+  if executable('ccls')
+    let g:LanguageClient_serverCommands.cpp = ['ccls', '--log-file=/tmp/ccls.log']
+    let g:LanguageClient_serverCommands.c = ['ccls', '--log-file=/tmp/ccls.log']
   endif
   if executable('pyls')
     let g:LanguageClient_serverCommands.python = ['pyls']
@@ -863,8 +870,4 @@ if exists('s:have_goyo')
   let g:goyo_width = 120
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
-endif
-
-if exists('s:have_vimify')
-  let g:spotify_token='YjBjMDAxOGNhZmJjNDgwNjgxNDg4MTQ2ZTkzNmIwNGU6NDQzMDQ0OWZhNDA5NDQzNGFhNjE2MGY2NTllODA2OWU='
 endif
