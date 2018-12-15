@@ -30,8 +30,8 @@
 "     $ make -j$(nproc) && make install
 "     - Add $HOME/local/ccls/bin to the $PATH.
 "   - Install python-language-server:
-"     $ pip install --user --upgrade python-language-server
-"     $ pip install --user --upgrade 'python-language-server[all]'
+"     $ pip3 install --user --upgrade python-language-server
+"     $ pip3 install --user --upgrade 'python-language-server[all]'
 "     - Add $HOME/.local/bin to the $PATH.
 "
 " * Deoplete requires the Python 'neovim' package to be installed. This applies
@@ -56,7 +56,6 @@ let s:plugin_categories += ['formatting']
 let s:plugin_categories += ['devel']
 let s:plugin_categories += ['devel_ext']
 let s:plugin_categories += ['misc']
-"let s:plugin_categories += ['google']
 
 let s:colorscheme_use_base16 = 1
 let s:colorscheme = 'molokai'
@@ -204,6 +203,11 @@ if index(s:plugin_categories, 'devel') >= 0
   let s:have_signify = 1
   Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
+  if has('nvim')
+    Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}  " Semantic highlighting in Neovim
+    Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
+    let s:have_chromatica = 1
+  endif
 endif
 
 if index(s:plugin_categories, 'devel_ext') >= 0
@@ -238,22 +242,7 @@ if index(s:plugin_categories, 'misc') >= 0
   let s:have_goyo = 1
 endif
 
-if index(s:plugin_categories, 'google') >= 0
-  " Some of these are inter-dependent, hence the separate category
-  Plug 'google/vim-searchindex'
-  Plug 'google/vim-maktaba'
-  Plug 'google/vim-glaive'
-  let s:have_glaive = 1
-  Plug 'google/vim-codefmt'              " Trigger code formatting engines
-  let s:have_codefmt = 1
-endif
-
 call plug#end()
-
-if exists('s:have_codefmt')
-  call glaive#Install()
-  Glaive codefmt plugin[mappings]
-endif
 
 " General
 "=======================================
@@ -425,12 +414,6 @@ function! ToggleTextWidth()
   echo "Set textwidth and colorcolumn to" x
 endfunction
 
-function! CloseCurrentWindow()
-  if winnr("$") > 1
-    execute "quit"
-  endif
-endfunction
-
 function! DeleteAllRegisters()
   let regs=split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/-"', '\zs')
   for r in regs
@@ -499,7 +482,7 @@ noremap <silent> <A-j> :bprevious<cr>
 noremap <silent> <A-k> :bnext<cr>
 
 " Quick switching to alternate buffer
-noremap <silent> <A-l> :b#<cr>
+"noremap <silent> <A-l> :b#<cr>
 nnoremap <silent> <leader>a :b#<cr>
 
 " Move to beginning of line/first whitespace character or end of line
@@ -538,8 +521,7 @@ xnoremap >  >gv
 
 " Shortcuts for window handling
 nnoremap <leader>r <C-w>r  " rotate windows
-nnoremap <leader>w :call CloseCurrentWindow()<cr>:echo<cr>
-"nnoremap <leader>o <C-w>o  " make current one the only window
+nnoremap <leader>w <C-w>c  " close current window
 
 " Window switching using <leader><number> (Source: http://stackoverflow.com/a/6404246/151007)
 let i = 1
@@ -805,6 +787,13 @@ if exists('s:have_sideways')
   nnoremap g> :SidewaysRight<cr>
 endif
 
+if exists('s:have_chromatica')
+  let g:chromatica#libclang_path = fnamemodify(system("which clang"), ":p:h:h") . "/lib/libclang.so"
+  let g:chromatica#enable_at_startup=0
+  let g:chromatica#highlight_feature_level=1
+  let g:chromatica#responsive_mode=1
+endif
+
 if exists('s:have_ale')
   " - Enable some linters. Note that for proper C and C++ support, one should provide a .lvimrc file in the project
   "   root directory, with the proper g:ale_c??_[clang|g++]_options settings. Basic options are set here, but they
@@ -812,7 +801,7 @@ if exists('s:have_ale')
   let g:ale_linters = {
         \ 'json': 'all',
         \ 'markdown': 'all',
-        \ 'python': ['flake8'],
+        \ 'python': ['flake8', 'autopep8', 'mypy', 'black'],
         \ 'tex': 'all',
         \ 'vim': 'all',
         \ 'c': ['clang', 'gcc'],
@@ -854,8 +843,7 @@ if exists('s:have_language_client_neovim')
   let g:LanguageClient_settingsPath = $HOME . '/.config/language_client/settings.json'
   let g:LanguageClient_diagnosticsEnable = 0
 
-  set completefunc=LanguageClient#complete
-
+  autocmd FileType c,cpp,python setlocal completefunc=LanguageClient#complete
   autocmd FileType c,cpp,python setlocal formatexpr=LanguageClient_textDocument_rangeFormatting()
 
   autocmd FileType c,cpp,python nnoremap <buffer> <silent> K :call LanguageClient_textDocument_hover()<cr>
