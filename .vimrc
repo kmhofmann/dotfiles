@@ -58,12 +58,13 @@ let s:plugin_categories += ['devel_ext']
 let s:plugin_categories += ['misc']
 
 let s:colorscheme_use_base16 = 1
-let s:colorscheme = 'molokai'
+let s:colorscheme = 'vim-monokai-tasty'
+"let s:colorscheme = 'molokai'
 "let s:colorscheme = 'solarized8'
 
 " Set these options to your liking
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
-"let s:show_airline_tabs = 1
+let s:remap_cursor_keys = 0  " Remap cursor keys
 
 " Bootstrap vim-plug automatically, if not already present
 if has("unix") || has("macunix")
@@ -84,6 +85,8 @@ call plug#begin()
 if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'sjl/badwolf'
   Plug 'tomasr/molokai'
+  Plug 'patstockwell/vim-monokai-tasty'
+  Plug 'erichdongubler/vim-sublime-monokai'
   Plug 'euclio/vim-nocturne'
   Plug 'nanotech/jellybeans.vim'
   Plug 'altercation/vim-colors-solarized'
@@ -94,6 +97,7 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'dracula/vim', { 'as': 'dracula' }
   Plug 'TroyFletcher/vim-colors-synthwave'
   Plug 'rhysd/vim-color-spring-night'
+  Plug 'Nequo/vim-allomancer'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
@@ -203,6 +207,8 @@ if index(s:plugin_categories, 'devel') >= 0
   let s:have_signify = 1
   Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
+  "Plug 'octol/vim-cpp-enhanced-highlight'  " Additional C++ syntax highlighting
+  "let s:have_cpp_enhanced_highlight = 1
   if has('nvim')
     Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}  " Semantic highlighting in Neovim
     Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
@@ -334,12 +340,12 @@ if index(s:plugin_categories, 'colorschemes') >= 0
     set termguicolors
   endif
 
-  if (s:colorscheme_use_base16 && !has("gui_running") && filereadable(expand("~/.vimrc_background")))
+  if (exists('s:colorscheme_use_base16') && !has("gui_running") && filereadable(expand("~/.vimrc_background")))
     " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
     let base16colorspace=256
-    let g:base16_shell_path="~/.config/base16-shell/scripts/"
     source ~/.vimrc_background
   else
+    " Use the color scheme defined above.
     execute 'colorscheme ' . s:colorscheme
   endif
 endif
@@ -432,6 +438,7 @@ let mapleader = "\<Space>"
 " Use 'jj'/'jk' to exit insert mode; en-/disable as desired
 inoremap jj <Esc>
 "inoremap jk <Esc>
+inoremap § <Esc>
 
 " Disable K (might be mapped for LanguageClient_neovim)
 if !exists('s:have_language_client_neovim')
@@ -540,10 +547,12 @@ endwhile
 nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
 
 " Cursor keys for nicer quickfix list handling
-nnoremap <silent> <Up> :cprevious<cr>
-nnoremap <silent> <Down> :cnext<cr>
-nnoremap <silent> <Left> :cpfile<cr>
-nnoremap <silent> <Right> :cnfile<cr>
+if s:remap_cursor_keys
+  nnoremap <silent> <Up> :cprevious<cr>
+  nnoremap <silent> <Down> :cnext<cr>
+  nnoremap <silent> <Left> :cpfile<cr>
+  nnoremap <silent> <Right> :cnfile<cr>
+endif
 
 " F1: Switch line numbering
 noremap <F1> :set number!<cr>:set number?<cr>
@@ -676,6 +685,8 @@ if exists('s:have_lightline')
     let g:lightline.colorscheme = 'jellybeans'
   elseif (s:colorscheme =~ 'dracula')
     let g:lightline.colorscheme = 'darcula'
+  elseif (s:colorscheme =~ 'vim-monokai-tasty')
+    let g:lightline.colorscheme = 'monokai_tasty'
   elseif (index(s:lightline_colorschemes, s:colorscheme) >= 0)
     let g:lightline.colorscheme = s:colorscheme
   endif
@@ -787,6 +798,15 @@ if exists('s:have_sideways')
   nnoremap g> :SidewaysRight<cr>
 endif
 
+if exists('s:have_cpp_enhanced_highlight')
+  let g:cpp_class_scope_highlight = 1
+  let g:cpp_member_variable_highlight = 1
+  let g:cpp_class_decl_highlight = 1
+  let g:cpp_experimental_simple_template_highlight = 1
+  let g:cpp_concepts_highlight = 1
+  let c_no_curly_error=1
+endif
+
 if exists('s:have_chromatica')
   let g:chromatica#libclang_path = fnamemodify(system("which clang"), ":p:h:h") . "/lib/libclang.so"
   let g:chromatica#enable_at_startup=0
@@ -816,7 +836,7 @@ if exists('s:have_ale')
   let g:ale_c_gcc_options = s:ale_c_opts
   let g:ale_c_clang_options = s:ale_c_opts
 
-  let s:ale_cpp_opts = '-std=c++14 -Wall -Wextra -Werror -fexceptions'
+  let s:ale_cpp_opts = '-std=c++17 -Wall -Wextra -Werror -fexceptions'
   let g:ale_cpp_gcc_options = s:ale_cpp_opts
   let g:ale_cpp_clang_options = s:ale_cpp_opts
   let g:ale_cpp_clangtidy_options = s:ale_cpp_opts
