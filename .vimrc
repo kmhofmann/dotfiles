@@ -48,7 +48,7 @@ let s:plugin_categories += ['basic']
 let s:plugin_categories += ['buffers']
 let s:plugin_categories += ['textsearch']
 let s:plugin_categories += ['textediting']
-let s:plugin_categories += ['snippets']
+"let s:plugin_categories += ['snippets']
 let s:plugin_categories += ['ui_additions']
 let s:plugin_categories += ['filesearch']
 let s:plugin_categories += ['sessions']
@@ -56,6 +56,7 @@ let s:plugin_categories += ['formatting']
 let s:plugin_categories += ['devel']
 let s:plugin_categories += ['devel_ext']
 let s:plugin_categories += ['misc']
+"let s:plugin_categories += ['disabled']
 
 let s:colorscheme_use_base16 = 1
 let s:colorscheme = 'vim-monokai-tasty'
@@ -98,6 +99,7 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'TroyFletcher/vim-colors-synthwave'
   Plug 'rhysd/vim-color-spring-night'
   Plug 'Nequo/vim-allomancer'
+  Plug 'flrnprz/plastic.vim'
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
 endif
 
@@ -105,33 +107,26 @@ if index(s:plugin_categories, 'basic') >= 0
   if !has('nvim')
     Plug 'drmikehenry/vim-fixkey'          " Permits mapping more classes of characters (e.g. <Alt-?>)
   endif
-  Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
-  Plug 'tpope/vim-surround'              " 'surrounding' motion
   Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (conflicts with vim-sneak)
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
   let s:have_localvimrc = 1
   Plug 'drzel/vim-split-line'
   let s:have_splitline = 1
-  if has("unix") || has("macunix")
-    Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
-  endif
   Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
-  "Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
-  "let s:have_vim_markbar = 1
 endif
 
 if index(s:plugin_categories, 'buffers') >= 0
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let s:have_bbye = 1
-  Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
 endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
   Plug 'haya14busa/is.vim'               " Improved incremental search
+  Plug 'andymass/vim-matchup'            " Improved % motion
   "Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
   "let s:have_sneak = 1
   Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
@@ -143,7 +138,6 @@ endif
 if index(s:plugin_categories, 'textediting') >= 0
   Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
   let s:have_easyclip = 1
-  Plug 'wincent/scalpel'                 " Faster within-file word replacement
   Plug 'AndrewRadev/sideways.vim'        " Move function arguments sideways
   let s:have_sideways = 1
 endif
@@ -156,9 +150,6 @@ if index(s:plugin_categories, 'snippets') >= 0
 endif
 
 if index(s:plugin_categories, 'ui_additions') >= 0
-  "Plug 'vim-airline/vim-airline'         " Status/tabline
-  "Plug 'vim-airline/vim-airline-themes'  " Themes for vim-airline
-  "let s:have_airline = 1
   Plug 'itchyny/lightline.vim'           " Statusline
   let s:have_lightline = 1
   Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
@@ -190,8 +181,8 @@ if index(s:plugin_categories, 'sessions') >= 0
 endif
 
 if index(s:plugin_categories, 'formatting') >= 0
-  Plug 'itspriddle/vim-stripper'         " Strip trailing whitespace on save
-  let s:have_vim_stripper = 1
+  Plug 'ntpeters/vim-better-whitespace'  " Trailing whitespace display
+  let s:have_better_whitespace = 1
   Plug 'junegunn/vim-easy-align'         " Text alignment made easy
   let s:have_easy_align = 1
   Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
@@ -201,14 +192,11 @@ if index(s:plugin_categories, 'devel') >= 0
   Plug 'scrooloose/nerdcommenter'        " Commenting code
   Plug 'tpope/vim-fugitive'              " Git wrapper
   let s:have_fugitive = 1
-  Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
   Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'mhinz/vim-signify'               " Show visual git diff in the gutter
   let s:have_signify = 1
   Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
-  "Plug 'octol/vim-cpp-enhanced-highlight'  " Additional C++ syntax highlighting
-  "let s:have_cpp_enhanced_highlight = 1
   if has('nvim')
     Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}  " Semantic highlighting in Neovim
     Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
@@ -226,19 +214,8 @@ if index(s:plugin_categories, 'devel_ext') >= 0
       let s:have_lightline_ale = 1
     endif
 
-    if !has("win32")
-      if has('nvim')
-        Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-      else
-        Plug 'Shougo/deoplete.nvim'
-        Plug 'roxma/nvim-yarp'
-        Plug 'roxma/vim-hug-neovim-rpc'
-      endif
-      let s:have_deoplete = 1
-
-      Plug 'autozimu/LanguageClient-neovim', {'branch': 'next', 'do': 'bash install.sh'}
-      let s:have_language_client_neovim = 1
-    endif
+    Plug 'neoclide/coc.nvim', {'do': './install.sh'}
+    let s:have_coc_nvim = 1
   endif
 endif
 
@@ -246,6 +223,19 @@ if index(s:plugin_categories, 'misc') >= 0
   Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
   Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
   let s:have_goyo = 1
+endif
+
+if index(s:plugin_categories, 'disabled') >= 0
+  Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
+  "Plug 'tpope/vim-surround'              " 'surrounding' motion
+  if has("unix") || has("macunix")
+    Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
+  endif
+  "Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
+  "let s:have_vim_markbar = 1
+  Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
+  Plug 'wincent/scalpel'                 " Faster within-file word replacement
+  Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
 endif
 
 call plug#end()
@@ -340,7 +330,7 @@ if index(s:plugin_categories, 'colorschemes') >= 0
     set termguicolors
   endif
 
-  if (exists('s:colorscheme_use_base16') && !has("gui_running") && filereadable(expand("~/.vimrc_background")))
+  if (exists('s:colorscheme_use_base16') && s:colorscheme_use_base16 == 1 && !has("gui_running") && filereadable(expand("~/.vimrc_background")))
     " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
     let base16colorspace=256
     source ~/.vimrc_background
@@ -441,9 +431,7 @@ inoremap jj <Esc>
 inoremap § <Esc>
 
 " Disable K (might be mapped for LanguageClient_neovim)
-if !exists('s:have_language_client_neovim')
-  noremap K <nop>
-endif
+noremap K <nop>
 
 " Disable Q (to be mapped sensibly otherwise?)
 nnoremap Q <nop>
@@ -569,17 +557,10 @@ noremap <F4> :set wrap!<cr>:set wrap?<cr>
 " F5: Switch paste mode
 noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
 
-" F6: Switch case sensitivity
-"noremap <F6> :set ignorecase!<cr>:set ignorecase?<cr>
+" F6: Toggle text width
+noremap <silent> <F6> :call ToggleTextWidth()<cr>
 
-" F6: Rename (LanguageClient_neovim)
-" F7: Find references (LanguageClient_neovim)
-" F8: Go to definition (LanguageClient_neovim)
-" F9: Find file in NERDTree (see below)
-
-" F10: Toggle text width
-noremap <silent> <F10> :call ToggleTextWidth()<cr>
-
+" F7-F10 mapped by coc.nvim below
 " F11: usually mapped to 'full screen' by terminal emulator
 
 " F12: Source .vimrc
@@ -656,21 +637,6 @@ if exists('s:have_localvimrc')
   let g:localvimrc_persistent = 1
 endif
 
-if exists('s:have_airline')
-  let s:airline_themes = {
-      \'base16-solarized-dark': 'base16_solarized',
-      \'base16-monokai': 'base16_monokai'}
-  if exists('g:colors_name') && has_key(s:airline_themes, g:colors_name)
-    let g:airline_theme=s:airline_themes[g:colors_name]
-  endif
-  if exists('s:show_airline_tabs') && (s:show_airline_tabs == 1)
-    let g:airline#extensions#tabline#enabled = 1
-    let g:airline#extensions#tabline#show_splits = 1
-    let g:airline#extensions#tabline#show_tabs = 1
-    let g:airline#extensions#tabline#formatter = 'default'
-  endif
-endif
-
 if exists('s:have_lightline')
   let s:lightline_colorschemes = ['wombat', 'solarized', 'powerline', 'jellybeans', 'Tomorrow', 'Tomorrow_Night',
     \ 'Tomorrow_Night_Blue', 'Tomorrow_Night_Eighties', 'PaperColor', 'seoul256', 'landscape', 'one', 'darcula',
@@ -692,7 +658,8 @@ if exists('s:have_lightline')
   endif
 
   let g:lightline.active = {
-    \   'left': [ [ 'mode', 'paste' ], [ 'readonly', 'filename', 'modified', 'gitbranch' ] ],
+    \   'left': [ [ 'mode', 'paste' ],
+    \             [ 'readonly', 'filename', 'modified', 'gitbranch' ] ],
     \   'right': [ [ 'lineinfo' ], [ 'percent' ], [ 'fileformat', 'fileencoding', 'filetype' ],
     \              [ 'linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok' ] ],
     \ }
@@ -743,8 +710,11 @@ if exists('s:have_ctrlp')
   let g:ctrlp_cmd = 'CtrlPMixed'
 endif
 
-if exists('s:have_vim_stripper')
-  let g:StripperNoStripOnSave = 1
+if exists('s:have_better_whitespace')
+  let g:better_whitespace_enabled = 1
+  let g:show_spaces_that_precede_tabs = 1
+  "let g:strip_whitespace_on_save = 1
+  "let g:strip_whitelines_at_eof = 1
 endif
 
 if exists('s:have_easy_align')
@@ -772,7 +742,7 @@ if exists('s:have_nerdtree')
   endfunction
 
   " Find current file in NERDTree
-  noremap <silent> <F9> :NERDTreeFind<cr>
+  "noremap <silent> <F9> :NERDTreeFind<cr>
   " Open or focus NERDTree with Ctrl-n, or close it if already focused
   nnoremap <silent> <C-n> :call FocusOrCloseNERDTree()<cr>
   let g:NERDTreeShowHidden=1
@@ -798,15 +768,6 @@ if exists('s:have_sideways')
   nnoremap g> :SidewaysRight<cr>
 endif
 
-if exists('s:have_cpp_enhanced_highlight')
-  let g:cpp_class_scope_highlight = 1
-  let g:cpp_member_variable_highlight = 1
-  let g:cpp_class_decl_highlight = 1
-  let g:cpp_experimental_simple_template_highlight = 1
-  let g:cpp_concepts_highlight = 1
-  let c_no_curly_error=1
-endif
-
 if exists('s:have_chromatica')
   let g:chromatica#libclang_path = fnamemodify(system("which clang"), ":p:h:h") . "/lib/libclang.so"
   let g:chromatica#enable_at_startup=0
@@ -827,49 +788,73 @@ if exists('s:have_ale')
         \ 'c': ['clang', 'gcc'],
         \ 'cpp': ['clang', 'clangtidy', 'g++'],
         \ }
-  let g:ale_open_list = 0
-  let g:ale_lint_delay = 1500
 
-  let g:ale_python_mypy_options = '--ignore-missing-imports'
+  "let g:ale_fixers = {
+  "      \ '*': ['remove_trailing_lines', 'trim_whitespace'],
+  "      \ 'cpp': ['clang-format'],
+  "      \ }
 
-  let s:ale_c_opts = '-std=c11 -Wall -Wextra -Werror'
-  let g:ale_c_gcc_options = s:ale_c_opts
-  let g:ale_c_clang_options = s:ale_c_opts
+  "let g:ale_open_list = 0
+  "let g:ale_lint_delay = 1500
 
-  let s:ale_cpp_opts = '-std=c++17 -Wall -Wextra -Werror -fexceptions'
-  let g:ale_cpp_gcc_options = s:ale_cpp_opts
-  let g:ale_cpp_clang_options = s:ale_cpp_opts
-  let g:ale_cpp_clangtidy_options = s:ale_cpp_opts
+  "let s:ale_c_opts = '-std=c11 -Wall -Wextra -Werror'
+  "let g:ale_c_gcc_options = s:ale_c_opts
+  "let g:ale_c_clang_options = s:ale_c_opts
+
+  "let s:ale_cpp_opts = '-std=c++17 -Wall -Wextra -Werror -fexceptions'
+  "let g:ale_cpp_gcc_options = s:ale_cpp_opts
+  "let g:ale_cpp_clang_options = s:ale_cpp_opts
+  "let g:ale_cpp_clangtidy_options = s:ale_cpp_opts
 endif
 
-if exists('s:have_deoplete')
-  let g:deoplete#enable_at_startup = 1
-  if !exists('g:deoplete#omni#input_patterns')
-    let g:deoplete#omni#input_patterns = {}
-  endif
-endif
+if exists('s:have_coc_nvim')
+  " See https://github.com/neoclide/coc.nvim for example options.
 
-if exists('s:have_language_client_neovim')
-  let g:LanguageClient_serverCommands = {}
-  if executable('ccls')
-    let g:LanguageClient_serverCommands.cpp = ['ccls', '--log-file=/tmp/ccls.log']
-    let g:LanguageClient_serverCommands.c = ['ccls', '--log-file=/tmp/ccls.log']
-  endif
-  if executable('pyls')
-    let g:LanguageClient_serverCommands.python = ['pyls']
-  endif
+  function! s:check_whitespace_backwards() abort
+    let col = col('.') - 1
+    return !col || getline('.')[col - 1]  =~# '\s'
+  endfunction
 
-  let g:LanguageClient_loadSettings = 1
-  let g:LanguageClient_settingsPath = $HOME . '/.config/language_client/settings.json'
-  let g:LanguageClient_diagnosticsEnable = 0
+  function! s:show_documentation()
+    if (index(['vim','help'], &filetype) >= 0)
+      execute 'h '.expand('<cword>')
+    else
+      call CocAction('doHover')
+    endif
+  endfunction
 
-  autocmd FileType c,cpp,python setlocal completefunc=LanguageClient#complete
-  autocmd FileType c,cpp,python setlocal formatexpr=LanguageClient_textDocument_rangeFormatting()
+  " Use TAB to trigger completion, and navigate through list. (Use ':verbose imap <tab>' to ensure TAB is not mapped.)
+  inoremap <silent><expr> <tab> pumvisible() ? "\<C-n>" : <SID>check_whitespace_backwards() ? "\<tab>" : coc#refresh()
+  inoremap <silent><expr><S-tab> pumvisible() ? "\<C-p>" : "\<C-h>"
 
-  autocmd FileType c,cpp,python nnoremap <buffer> <silent> K :call LanguageClient_textDocument_hover()<cr>
-  autocmd FileType c,cpp,python nnoremap <buffer> <silent> <F6> :call LanguageClient_textDocument_rename()<cr>
-  autocmd FileType c,cpp,python nnoremap <buffer> <silent> <F7> :call LanguageClient_textDocument_references()<cr>
-  autocmd FileType c,cpp,python nnoremap <buffer> <silent> <F8> :call LanguageClient_textDocument_definition()<cr>
+  " Use Ctrl-Space to trigger completion.
+  inoremap <silent><expr> <C-space> coc#refresh()
+
+  " Use Enter to confirm completion.
+  inoremap <expr> <cr> pumvisible() ? "\<C-y>" : "\<C-g>u\<cr>"
+
+  " Use `[c` and `]c` to navigate diagnostics
+  nmap <silent> [c <Plug>(coc-diagnostic-prev)
+  nmap <silent> ]c <Plug>(coc-diagnostic-next)
+
+  " Map function keys for LSP functionality
+  nmap <silent> <F7> <Plug>(coc-definition)
+  nmap <silent> <F8> <Plug>(coc-type-definition)
+  nmap <silent> <F9> <Plug>(coc-implementation)
+  nmap <silent> <F10> <Plug>(coc-references)
+
+  " Use K to show documentation in preview window
+  nnoremap <silent> K :call <SID>show_documentation()<CR>
+
+  " Highlight symbol under cursor on CursorHold
+  autocmd CursorHold * silent call CocActionAsync('highlight')
+
+  " Remap for rename current word
+  nmap <leader>rn <Plug>(coc-rename)
+
+  " Remap for format selected region
+  xmap <leader>fo <Plug>(coc-format-selected)
+  nmap <leader>fo <Plug>(coc-format-selected)
 endif
 
 if exists('s:have_goyo')
