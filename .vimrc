@@ -15,29 +15,25 @@
 " * All mentioned plugins will be installed from GitHub. Check their respective
 "   pages for functionality and documentation.
 "
-" * The LanguageClient-neovim plugin can make use of several language servers,
-"   according to the Language Server Protocol (LSP).
-"   See also http://langserver.org/.
-"   Below, 'ccls' and 'python-language-server' are preconfigured.
-"   To install them on the system (on a per-user level), perform the following
-"   steps (or similar):
-"   - Install ccls:
-"     $ git clone --recursive https://github.com/MaskRay/ccls.git
-"     $ mkdir -p ./ccls/build && cd ./ccls/build
-"     $ cmake -DCMAKE_BUILD_TYPE=Release \
-"             -DCMAKE_INSTALL_PREFIX=$HOME/local/ccls \
-"             ..
-"     $ make -j$(nproc) && make install
-"     - Add $HOME/local/ccls/bin to the $PATH.
-"   - Install python-language-server:
-"     $ pip3 install --user --upgrade python-language-server
-"     $ pip3 install --user --upgrade 'python-language-server[all]'
-"     - Add $HOME/.local/bin to the $PATH.
+" * coc.nvim requires language servers to be installed; see http://langserver.org/.
+"   For example:
+"   - ccls (https://github.com/MaskRay/ccls)
+"     - Setup using CMake and add binary to PATH.
+"   - python-language-server
+"     $ pip install --user --upgrade python-language-server
+"     $ pip install --user --upgrade 'python-language-server[all]'
+"     - Add $HOME/.local/bin to the PATH.
 "
-" * Deoplete requires the Python 'neovim' package to be installed. This applies
-"   both to Neovim as well vim8!
-"   $ pip install --user --upgrade neovim
-"   $ pip3 install --user --upgrade neovim
+" * coc.nvim itself requires some setup.
+"   - node.js needs to be present.
+"   - Set up language servers, e.g.:
+"     - https://github.com/neoclide/coc.nvim/wiki/Language-servers#ccobjective-c
+"     - https://github.com/neoclide/coc.nvim/wiki/Language-servers#python
+"       - :CocInstall coc-python
+"
+" * nvim: You may have to install the Python 'pynvim' package for some plugins to
+"         work correctly.
+"   $ pip install --user --upgrade pynvim
 
 " Plugin management
 "=======================================
@@ -45,23 +41,21 @@
 " Activate or deactivate categories here:
 let s:plugin_categories  = ['colorschemes']
 let s:plugin_categories += ['basic']
-let s:plugin_categories += ['buffers']
 let s:plugin_categories += ['textsearch']
 let s:plugin_categories += ['textediting']
-"let s:plugin_categories += ['snippets']
 let s:plugin_categories += ['ui_additions']
 let s:plugin_categories += ['filesearch']
 let s:plugin_categories += ['sessions']
 let s:plugin_categories += ['formatting']
-let s:plugin_categories += ['devel']
-let s:plugin_categories += ['devel_ext']
+let s:plugin_categories += ['version_control']
+let s:plugin_categories += ['development']
+let s:plugin_categories += ['semantic_highlighting']
+let s:plugin_categories += ['linting_completion']
 let s:plugin_categories += ['misc']
 "let s:plugin_categories += ['disabled']
 
 let s:colorscheme_use_base16 = 1
 let s:colorscheme = 'vim-monokai-tasty'
-"let s:colorscheme = 'molokai'
-"let s:colorscheme = 'solarized8'
 
 " Set these options to your liking
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
@@ -112,13 +106,10 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (conflicts with vim-sneak)
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
+  Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }  " Easier session handling
   let s:have_localvimrc = 1
   Plug 'drzel/vim-split-line'
   let s:have_splitline = 1
-  Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
-endif
-
-if index(s:plugin_categories, 'buffers') >= 0
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let s:have_bbye = 1
 endif
@@ -127,8 +118,6 @@ if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
   Plug 'haya14busa/is.vim'               " Improved incremental search
   Plug 'andymass/vim-matchup'            " Improved % motion
-  "Plug 'justinmk/vim-sneak'              " f-like search using two letters, mapped to s/S
-  "let s:have_sneak = 1
   Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
   let s:have_clever_f = 1
   Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
@@ -142,18 +131,9 @@ if index(s:plugin_categories, 'textediting') >= 0
   let s:have_sideways = 1
 endif
 
-if index(s:plugin_categories, 'snippets') >= 0
-    Plug 'SirVer/ultisnips'
-    let s:have_ultisnips = 1
-    "Plug 'honza/vim-snippets'
-    "let s:have_vim_snippets = 1
-endif
-
 if index(s:plugin_categories, 'ui_additions') >= 0
   Plug 'itchyny/lightline.vim'           " Statusline
   let s:have_lightline = 1
-  Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
-  let s:have_buffergator = 1
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list
   let s:have_listtoggle = 1
   Plug 'mbbill/undotree', { 'on': ['UndotreeToggle'] }  " Visualize and act upon undo tree
@@ -166,37 +146,36 @@ if index(s:plugin_categories, 'filesearch') >= 0
     Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all' }
     Plug 'junegunn/fzf.vim'
     let s:have_fzf = 1
-  else
-    Plug 'ctrlpvim/ctrlp.vim', { 'on': ['CtrlP', 'CtrlPBuffer', 'CtrlPMRU', 'CtrlPMixed'] }  " Fuzzy file finder
-    let s:have_ctrlp = 1
   endif
-  Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }  " Better file explorer
-  Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle'] }
+  Plug 'tpope/vim-vinegar'
+  Plug 'scrooloose/nerdtree', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle', 'NERDTreeFocus'] }  " Better file explorer
+  Plug 'Xuyuanp/nerdtree-git-plugin', { 'on': ['NERDTree', 'NERDTreeFind', 'NERDTreeToggle', 'NERDTreeFocus'] }
   let s:have_nerdtree = 1
-  "Plug 'jeetsukumaran/vim-filebeagle'
-endif
-
-if index(s:plugin_categories, 'sessions') >= 0
-  Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }             " Easier session handling
 endif
 
 if index(s:plugin_categories, 'formatting') >= 0
-  Plug 'ntpeters/vim-better-whitespace'  " Trailing whitespace display
-  let s:have_better_whitespace = 1
   Plug 'junegunn/vim-easy-align'         " Text alignment made easy
   let s:have_easy_align = 1
   Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
+  Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
 endif
 
-if index(s:plugin_categories, 'devel') >= 0
-  Plug 'scrooloose/nerdcommenter'        " Commenting code
+if index(s:plugin_categories, 'version_control') >= 0
+  Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'tpope/vim-fugitive'              " Git wrapper
   let s:have_fugitive = 1
-  Plug 'airblade/vim-rooter'             " Changes working directory to project root
   Plug 'mhinz/vim-signify'               " Show visual git diff in the gutter
   let s:have_signify = 1
-  Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs
-  Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
+endif
+
+if index(s:plugin_categories, 'development') >= 0
+  Plug 'scrooloose/nerdcommenter'        " Commenting code
+  if has("python") || has("python3")
+    Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs
+  endif
+endif
+
+if index(s:plugin_categories, 'semantic_highlighting') >= 0
   if has('nvim')
     Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}  " Semantic highlighting in Neovim
     Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
@@ -204,7 +183,7 @@ if index(s:plugin_categories, 'devel') >= 0
   endif
 endif
 
-if index(s:plugin_categories, 'devel_ext') >= 0
+if index(s:plugin_categories, 'linting_completion') >= 0
   if (v:version >= 800)
     Plug 'w0rp/ale'                      " Asynchronous Lint Engine
     let s:have_ale = 1
@@ -226,16 +205,22 @@ if index(s:plugin_categories, 'misc') >= 0
 endif
 
 if index(s:plugin_categories, 'disabled') >= 0
+  Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
+  Plug 'tpope/vim-surround'              " 'surrounding' motion
+  Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
+  let s:have_buffergator = 1
   Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
-  "Plug 'tpope/vim-surround'              " 'surrounding' motion
-  if has("unix") || has("macunix")
-    Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
-  endif
-  "Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
-  "let s:have_vim_markbar = 1
+  Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
+  let s:have_vim_markbar = 1
   Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
   Plug 'wincent/scalpel'                 " Faster within-file word replacement
   Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
+  Plug 'SirVer/ultisnips'
+  "Plug 'honza/vim-snippets'
+  if has("unix") || has("macunix")
+    Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
+  endif
+  Plug 'psliwka/vim-smoothie'            " Smooth scrolling done right
 endif
 
 call plug#end()
@@ -379,10 +364,13 @@ endif
 
 augroup MichaelAutocmnds
   " Resize splits when window gets resized
-  autocmd VimResized * execute "normal! \<C-w>="
+  autocmd VimResized * wincmd =
   " Disable paste mode when leaving insert mode
   autocmd InsertLeave * set nopaste
 augroup END
+
+" netrw
+let g:netrw_liststyle = 1   " 'long' listing, with file details
 
 " Functions for later use
 "=======================================
@@ -473,30 +461,17 @@ if exists('s:have_clever_f')
 endif
 
 " Switch to previous/next buffer
-noremap <silent> <A-j> :bprevious<cr>
-noremap <silent> <A-k> :bnext<cr>
+"noremap <silent> <A-j> :bprevious<cr>
+"noremap <silent> <A-k> :bnext<cr>
 
 " Quick switching to alternate buffer
 "noremap <silent> <A-l> :b#<cr>
-nnoremap <silent> <leader>a :b#<cr>
+"nnoremap <silent> <leader>a :b#<cr>
 
 " Move to beginning of line/first whitespace character or end of line
 noremap <leader>0 :call LineHome()<cr>:echo<cr>
 noremap <Home> :call LineHome()<cr>:echo<cr>
 inoremap <Home> <C-R>=LineHome()<cr>
-
-" Move 5 lines up and down
-"noremap <A-j> 5j
-"noremap <A-k> 5k
-
-" Move lines up or down with Alt-d/u
-" (http://vim.wikia.com/wiki/Moving_lines_up_or_down)
-"nnoremap <A-d> :m .+1<cr>==
-"nnoremap <A-u> :m .-2<cr>==
-"inoremap <A-d> <Esc>:m .+1<cr>==gi
-"inoremap <A-u> <Esc>:m .-2<cr>==gi
-"vnoremap <A-d> :m '>+1<cr>gv=gv
-"vnoremap <A-u> :m '<-2<cr>gv=gv
 
 " Quick window switching with Ctrl-h/j/k/l
 noremap  <C-h>  <C-w>h
@@ -515,7 +490,7 @@ xnoremap <  <gv
 xnoremap >  >gv
 
 " Shortcuts for window handling
-nnoremap <leader>r <C-w>r  " rotate windows
+"nnoremap <leader>r <C-w>r  " rotate windows
 nnoremap <leader>w <C-w>c  " close current window
 
 " Window switching using <leader><number> (Source: http://stackoverflow.com/a/6404246/151007)
@@ -578,23 +553,8 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 " Plugin configurations
 "=======================================
 
-if exists('s:have_sneak')
-  let g:sneak#s_next = 1  " Enable sneak-clever-s. Press 's'/'S' again to go to next/previous match.
-endif
-
 if exists('s:have_splitline')
-  if exists('s:have_sneak')
-    nnoremap <leader>s :SplitLine<cr>
-  else
-    nnoremap S :SplitLine<cr>
-  endif
-endif
-
-if exists('s:have_vim_markbar')
-  map <Leader>m <Plug>ToggleMarkbar
-  let g:markbar_width = 40
-  let g:markbar_num_lines_context = 3
-  "let g:markbar_marks_to_display = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  nnoremap S :SplitLine<cr>
 endif
 
 if exists('s:have_grepper')
@@ -618,15 +578,6 @@ if exists('s:have_listtoggle')
   let g:lt_height = 10
 endif
 
-if exists('s:have_buffergator')
-  " - Width of the buffergator window
-  let g:buffergator_viewport_split_policy = "B"
-  let g:buffergator_split_size = 16
-  let g:buffergator_autoupdate = 1
-  let g:buffergator_sort_regime = "mru"
-  let g:buffergator_suppress_mru_switching_keymaps = 1
-endif
-
 if exists('s:have_bbye')
   " Quick buffer deletion with <Space><Backspace> (using vim-bbye)
   nnoremap <silent> <leader><Bs> :Bdelete<cr>
@@ -638,11 +589,12 @@ if exists('s:have_localvimrc')
 endif
 
 if exists('s:have_lightline')
-  let s:lightline_colorschemes = ['wombat', 'solarized', 'powerline', 'jellybeans', 'Tomorrow', 'Tomorrow_Night',
-    \ 'Tomorrow_Night_Blue', 'Tomorrow_Night_Eighties', 'PaperColor', 'seoul256', 'landscape', 'one', 'darcula',
-    \ 'molokai', 'materia', 'material', 'OldHope', 'nord', '16color', 'deus']  " According to its doc
-
   let g:lightline = {}
+
+  let s:lightline_colorschemes = ['wombat', 'solarized', 'powerline', 'powerlineish', 'jellybeans', 'molokai',
+    \ 'seoul256', 'darcula', 'selenized_dark', 'Tomorrow', 'Tomorrow_Night', 'Tomorrow_Night_Blue',
+    \ 'Tomorrow_Night_Bright', 'Tomorrow_Night_Eighties', 'PaperColor', 'landscape', 'one', 'materia', 'material',
+    \ 'OldHope', 'nord', 'deus', 'srcery_drk', 'ayu_mirage', '16color', 'deus']  " According to its doc
 
   " Colorscheme options include molokai, solarized, jellybeans, wombat, one
   if (s:colorscheme =~ 'solarized' || s:colorscheme =~ 'spring-night')
@@ -657,32 +609,62 @@ if exists('s:have_lightline')
     let g:lightline.colorscheme = s:colorscheme
   endif
 
-  let g:lightline.active = {
-    \   'left': [ [ 'mode', 'paste' ],
-    \             [ 'readonly', 'filename', 'modified', 'gitbranch' ] ],
-    \   'right': [ [ 'lineinfo' ], [ 'percent' ], [ 'fileformat', 'fileencoding', 'filetype' ],
-    \              [ 'linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok' ] ],
-    \ }
+  let g:lightline.component_function = {}
+  let g:lightline.component_expand = {}
+  let g:lightline.component_type = {}
 
-  let g:lightline.component_expand = {
-    \   'linter_checking': 'lightline#ale#checking',
-    \   'linter_errors': 'lightline#ale#errors',
-    \   'linter_warnings': 'lightline#ale#warnings',
-    \   'linter_ok': 'lightline#ale#ok',
-    \ }
+  if exists('s:have_lightline_ale')
+    let g:lightline.component_expand.linter_checking = 'lightline#ale#checking'
+    let g:lightline.component_expand.linter_errors = 'lightline#ale#errors'
+    let g:lightline.component_expand.linter_warnings = 'lightline#ale#warnings'
+    let g:lightline.component_expand.linter_ok = 'lightline#ale#ok'
 
-  let g:lightline.component_type = {
-    \   'linter_checking': 'left',
-    \   'linter_errors': 'error',
-    \   'linter_warnings': 'warning',
-    \   'linter_ok': 'left',
-    \ }
+    let g:lightline.component_type.linter_checking = 'left'
+    let g:lightline.component_type.linter_errors = 'error'
+    let g:lightline.component_type.linter_warning = 'warning'
+    let g:lightline.component_type.linter_ok = 'left'
+  endif
 
   if exists('s:have_fugitive')
-    let g:lightline.component_function = {
-      \   'gitbranch': 'fugitive#head'
-      \ }
+    let g:lightline.component_function.gitbranch = 'fugitive#head'
   endif
+
+  if exists('s:have_coc_nvim')
+    function! CocCurrentFunction()
+      return get(b:, 'coc_current_function', '')
+    endfunction
+
+    let g:lightline.component_function.coc_status = 'coc#status'
+    let g:lightline.component_function.coc_currentfunction = 'CocCurrentFunction'
+
+    autocmd User CocStatusChange, CocDiagnosticChange call lightline#update()
+  endif
+
+  let g:lightline.active = {
+    \   'left':  [
+    \              [ 'mode', 'paste' ],
+    \              [ 'readonly', 'filename', 'modified', 'gitbranch' ],
+    \              [ 'coc_status', 'coc_currentfunction' ],
+    \            ],
+    \   'right': [
+    \              [ 'lineinfo' ],
+    \              [ 'percent' ],
+    \              [ 'fileformat', 'fileencoding', 'filetype' ],
+    \              [ 'linter_checking', 'linter_errors', 'linter_warnings', 'linter_ok' ],
+    \            ],
+    \ }
+
+  let g:lightline.inactive = {
+    \   'left':  [
+    \              [ 'readonly', 'filename', 'modified', 'gitbranch' ],
+    \            ],
+    \   'right': [
+    \              [ 'lineinfo' ],
+    \              [ 'percent' ],
+    \            ],
+    \ }
+
+  set noshowmode  " No need to display mode on last line - already on status line
 endif
 
 if exists('s:have_signify')
@@ -691,9 +673,7 @@ if exists('s:have_signify')
 endif
 
 if exists('s:have_fzf')
-  if !exists('s:have_ctrlp')
-    nnoremap <silent> <C-p> :FZF<cr>
-  endif
+  nnoremap <silent> <C-p> :FZF<cr>
   nnoremap <silent> <leader>ff :Files<cr>
   nnoremap <silent> <leader>fb :Buffers<cr>
   nnoremap <silent> <leader>fw :Windows<cr>
@@ -703,18 +683,6 @@ if exists('s:have_fzf')
   nnoremap <silent> <leader>fc :Commits<cr>
 
   nnoremap <silent> \ :Buffers<cr>
-endif
-
-if exists('s:have_ctrlp')
-  " - Start CtrlP in mixed mode
-  let g:ctrlp_cmd = 'CtrlPMixed'
-endif
-
-if exists('s:have_better_whitespace')
-  let g:better_whitespace_enabled = 1
-  let g:show_spaces_that_precede_tabs = 1
-  "let g:strip_whitespace_on_save = 1
-  "let g:strip_whitelines_at_eof = 1
 endif
 
 if exists('s:have_easy_align')
@@ -728,23 +696,18 @@ if exists('s:have_nerdtree')
   function! FocusOrCloseNERDTree()
     if bufname('') =~ "^NERD_tree_"
       :NERDTreeToggle
+      "wincmd =
     else
-      for p in map(range(1, winnr('$')), '[v:val, bufname(winbufnr(v:val))]')
-        if p[1] =~ "^NERD_tree_"
-          :exe p[0] . "wincmd w"
-          break
-        endif
-      endfor
-      if bufname('') !~ "^NERD_tree_"
-        :NERDTreeToggle
-      endif
+      :NERDTreeFocus
+      "wincmd =
     endif
   endfunction
 
+  " Open or focus NERDTree with Ctrl-n, or close it if already focused
+  "nnoremap <silent> <expr> <C-n> bufname('') =~ "^NERD_tree_" ? ':NERDTreeClose<cr>' : ':NERDTreeFocus<cr>'
+  nnoremap <silent> <C-n> :call FocusOrCloseNERDTree()<cr>
   " Find current file in NERDTree
   "noremap <silent> <F9> :NERDTreeFind<cr>
-  " Open or focus NERDTree with Ctrl-n, or close it if already focused
-  nnoremap <silent> <C-n> :call FocusOrCloseNERDTree()<cr>
   let g:NERDTreeShowHidden=1
   let g:NERDTreeStatusline="%f"
   let g:NERDTreeWinPos="left"
@@ -862,3 +825,20 @@ if exists('s:have_goyo')
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
 endif
+
+"if exists('s:have_buffergator')
+"  " - Width of the buffergator window
+"  let g:buffergator_viewport_split_policy = "B"
+"  let g:buffergator_split_size = 16
+"  let g:buffergator_autoupdate = 1
+"  let g:buffergator_sort_regime = "mru"
+"  let g:buffergator_suppress_mru_switching_keymaps = 1
+"endif
+
+"if exists('s:have_vim_markbar')
+"  map <Leader>m <Plug>ToggleMarkbar
+"  let g:markbar_width = 40
+"  let g:markbar_num_lines_context = 3
+"  "let g:markbar_marks_to_display = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+"endif
+
