@@ -45,13 +45,14 @@ let s:plugin_categories += ['textsearch']
 let s:plugin_categories += ['textediting']
 let s:plugin_categories += ['ui_additions']
 let s:plugin_categories += ['filesearch']
-let s:plugin_categories += ['sessions']
 let s:plugin_categories += ['formatting']
 let s:plugin_categories += ['version_control']
 let s:plugin_categories += ['development']
-let s:plugin_categories += ['semantic_highlighting']
 let s:plugin_categories += ['linting_completion']
-let s:plugin_categories += ['misc']
+"let s:plugin_categories += ['semantic_highlighting']
+"let s:plugin_categories += ['latex']
+"let s:plugin_categories += ['misc']
+
 "let s:plugin_categories += ['disabled']
 
 let s:colorscheme_use_base16 = 1
@@ -78,7 +79,6 @@ endif
 
 call plug#begin()
 if index(s:plugin_categories, 'colorschemes') >= 0
-  Plug 'sjl/badwolf'
   Plug 'tomasr/molokai'
   Plug 'patstockwell/vim-monokai-tasty'
   Plug 'erichdongubler/vim-sublime-monokai'
@@ -139,6 +139,8 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   Plug 'mbbill/undotree', { 'on': ['UndotreeToggle'] }  " Visualize and act upon undo tree
   let s:have_undotree = 1
   Plug 'mhinz/vim-startify'              " A fancy start screen
+  Plug 'dstein64/vim-win'
+  Plug 'nathanaelkane/vim-indent-guides', { 'on': ['IndentGuidesEnable', 'IndentGuidesDisable', 'IndentGuidesToggle'] }
 endif
 
 if index(s:plugin_categories, 'filesearch') >= 0
@@ -175,14 +177,6 @@ if index(s:plugin_categories, 'development') >= 0
   endif
 endif
 
-if index(s:plugin_categories, 'semantic_highlighting') >= 0
-  if has('nvim')
-    Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}  " Semantic highlighting in Neovim
-    Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
-    let s:have_chromatica = 1
-  endif
-endif
-
 if index(s:plugin_categories, 'linting_completion') >= 0
   if (v:version >= 800)
     Plug 'w0rp/ale'                      " Asynchronous Lint Engine
@@ -196,6 +190,18 @@ if index(s:plugin_categories, 'linting_completion') >= 0
     Plug 'neoclide/coc.nvim', {'do': './install.sh'}
     let s:have_coc_nvim = 1
   endif
+endif
+
+if index(s:plugin_categories, 'semantic_highlighting') >= 0
+  if has('nvim')
+    Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}  " Semantic highlighting in Neovim
+    Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
+    let s:have_chromatica = 1
+  endif
+endif
+
+if index(s:plugin_categories, 'latex') >= 0
+  Plug 'lervag/vimtex'
 endif
 
 if index(s:plugin_categories, 'misc') >= 0
@@ -221,6 +227,8 @@ if index(s:plugin_categories, 'disabled') >= 0
     Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
   endif
   Plug 'psliwka/vim-smoothie'            " Smooth scrolling done right
+  Plug 'justinmk/vim-dirvish' ", { 'on': ['Dirvish'] }
+  Plug 'kristijanhusak/vim-dirvish-git' ", { 'on': ['Dirvish'] }
 endif
 
 call plug#end()
@@ -370,7 +378,7 @@ augroup MichaelAutocmnds
 augroup END
 
 " netrw
-let g:netrw_liststyle = 1   " 'long' listing, with file details
+let g:netrw_liststyle = 3   " tree-style listing
 
 " Functions for later use
 "=======================================
@@ -414,7 +422,7 @@ command! DeleteRegisters silent :call DeleteAllRegisters()
 let mapleader = "\<Space>"
 
 " Use 'jj'/'jk' to exit insert mode; en-/disable as desired
-inoremap jj <Esc>
+"inoremap jj <Esc>
 "inoremap jk <Esc>
 inoremap § <Esc>
 
@@ -466,7 +474,7 @@ endif
 
 " Quick switching to alternate buffer
 "noremap <silent> <A-l> :b#<cr>
-"nnoremap <silent> <leader>a :b#<cr>
+nnoremap <silent> <leader>a :b#<cr>
 
 " Move to beginning of line/first whitespace character or end of line
 noremap <leader>0 :call LineHome()<cr>:echo<cr>
