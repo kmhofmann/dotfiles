@@ -9,30 +9,18 @@
 " * If not present yet, the plugin manager vim-plug will be bootstrapped.
 "   See https://github.com/junegunn/vim-plug on how to use vim-plug.
 "
-" * You can alter the list of plugins by editing the 's:plugin_categories' list
-"   below. After installation of new plugins, just restart vim.
+" * You can alter the list of plugins by editing the 's:plugin_categories' list below. After installation of new
+"   plugins, just restart vim.
 "
-" * All mentioned plugins will be installed from GitHub. Check their respective
-"   pages for functionality and documentation.
+" * All mentioned plugins will be installed from GitHub. Check their respective pages for functionality and
+"   documentation.
 "
-" * coc.nvim requires language servers to be installed; see http://langserver.org/.
-"   For example:
-"   - ccls (https://github.com/MaskRay/ccls)
-"     - Setup using CMake and add binary to PATH.
-"   - python-language-server
-"     $ pip install --user --upgrade python-language-server
-"     $ pip install --user --upgrade 'python-language-server[all]'
-"     - Add $HOME/.local/bin to the PATH.
+" * coc.nvim requires node.js and yarn to be installed.
+"   Some language support (Python, YAML, HTML, CSS, ...?) is being installed as explicit plugins below.
+"   Other languages may require language servers to be installed; see http://langserver.org/.
+"   For example, ccls (https://github.com/MaskRay/ccls) for C++. Install using CMake and add binary to PATH.
 "
-" * coc.nvim itself requires some setup.
-"   - node.js needs to be present.
-"   - Set up language servers, e.g.:
-"     - https://github.com/neoclide/coc.nvim/wiki/Language-servers#ccobjective-c
-"     - https://github.com/neoclide/coc.nvim/wiki/Language-servers#python
-"       - :CocInstall coc-python
-"
-" * nvim: You may have to install the Python 'pynvim' package for some plugins to
-"         work correctly.
+" * nvim: You may have to install the Python 'pynvim' package for some plugins to work correctly.
 "   $ pip install --user --upgrade pynvim
 
 " Plugin management
@@ -49,10 +37,10 @@ let s:plugin_categories += ['formatting']
 let s:plugin_categories += ['version_control']
 let s:plugin_categories += ['development']
 let s:plugin_categories += ['linting_completion']
-"let s:plugin_categories += ['semantic_highlighting']
+let s:plugin_categories += ['markdown']
+let s:plugin_categories += ['semantic_highlighting']
+let s:plugin_categories += ['misc']
 "let s:plugin_categories += ['latex']
-"let s:plugin_categories += ['misc']
-
 "let s:plugin_categories += ['disabled']
 
 let s:colorscheme_use_base16 = 1
@@ -62,39 +50,48 @@ let s:colorscheme = 'vim-monokai-tasty'
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
 let s:remap_cursor_keys = 0  " Remap cursor keys
 
+" Disable a few providers -- enable when needed
+if has('nvim')
+  let g:loaded_python_provider = 0
+  let g:loaded_ruby_provider = 0
+  let g:loaded_node_provider = 0
+  let g:loaded_perl_provider = 0
+endif
+
 " Bootstrap vim-plug automatically, if not already present
 if has("unix") || has("macunix")
-  if empty(glob('~/.vim/autoload/plug.vim'))
-    silent !curl -fLo ~/.vim/autoload/plug.vim --create-dirs
-        \ https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-    "autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+  if has('nvim')
+    let s:vim_plug_autoload_file = '~/.config/nvim/autoload/plug.vim'
+  else
+    let s:vim_plug_autoload_file = '~/.vim/autoload/plug.vim'
   endif
-elseif has("win32")
-  if empty(glob('~/vimfiles/autoload/plug.vim'))
-    echo "You will need to install vim-plug manually for this .vimrc to work."
-    echo "(https://github.com/junegunn/vim-plug)"
-    exit
+
+  if empty(glob(s:vim_plug_autoload_file))
+    execute "!curl -fLo " . s:vim_plug_autoload_file .
+        \ " --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
   endif
 endif
 
 call plug#begin()
 if index(s:plugin_categories, 'colorschemes') >= 0
-  Plug 'tomasr/molokai'
+  Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
   Plug 'patstockwell/vim-monokai-tasty'
-  Plug 'erichdongubler/vim-sublime-monokai'
-  Plug 'euclio/vim-nocturne'
+  Plug 'tomasr/molokai'
   Plug 'nanotech/jellybeans.vim'
-  Plug 'altercation/vim-colors-solarized'
-  Plug 'lifepillar/vim-solarized8'
-  Plug 'google/vim-colorscheme-primary'
-  Plug 'larsbs/vimterial_dark'
-  Plug 'bluz71/vim-moonfly-colors'
-  Plug 'dracula/vim', { 'as': 'dracula' }
-  Plug 'TroyFletcher/vim-colors-synthwave'
   Plug 'rhysd/vim-color-spring-night'
   Plug 'Nequo/vim-allomancer'
   Plug 'flrnprz/plastic.vim'
-  Plug 'chriskempson/base16-vim'         " Set of color schemes; see https://chriskempson.github.io/base16/
+
+  " Enable these if desired:
+  "Plug 'altercation/vim-colors-solarized'
+  "Plug 'lifepillar/vim-solarized8'
+  "Plug 'larsbs/vimterial_dark'
+  "Plug 'TroyFletcher/vim-colors-synthwave'
+  "Plug 'bluz71/vim-moonfly-colors'
+  "Plug 'google/vim-colorscheme-primary'
+  "Plug 'erichdongubler/vim-sublime-monokai'
+  "Plug 'euclio/vim-nocturne'
+  "Plug 'dracula/vim', { 'as': 'dracula' }
 endif
 
 if index(s:plugin_categories, 'basic') >= 0
@@ -103,28 +100,28 @@ if index(s:plugin_categories, 'basic') >= 0
   endif
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it
-  Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (conflicts with vim-sneak)
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
-  Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }  " Easier session handling
   let s:have_localvimrc = 1
   Plug 'drzel/vim-split-line'
   let s:have_splitline = 1
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let s:have_bbye = 1
+  Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }  " Easier session handling
 endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
   Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
   Plug 'haya14busa/is.vim'               " Improved incremental search
   Plug 'andymass/vim-matchup'            " Improved % motion
-  Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
-  let s:have_clever_f = 1
+  "Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
+  "let s:have_clever_f = 1
   Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
   let s:have_grepper = 1
 endif
 
 if index(s:plugin_categories, 'textediting') >= 0
+  Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (conflicts with vim-sneak)
   Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
   let s:have_easyclip = 1
   Plug 'AndrewRadev/sideways.vim'        " Move function arguments sideways
@@ -138,9 +135,6 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   let s:have_listtoggle = 1
   Plug 'mbbill/undotree', { 'on': ['UndotreeToggle'] }  " Visualize and act upon undo tree
   let s:have_undotree = 1
-  Plug 'mhinz/vim-startify'              " A fancy start screen
-  Plug 'dstein64/vim-win'
-  Plug 'nathanaelkane/vim-indent-guides', { 'on': ['IndentGuidesEnable', 'IndentGuidesDisable', 'IndentGuidesToggle'] }
 endif
 
 if index(s:plugin_categories, 'filesearch') >= 0
@@ -158,7 +152,7 @@ endif
 if index(s:plugin_categories, 'formatting') >= 0
   Plug 'junegunn/vim-easy-align'         " Text alignment made easy
   let s:have_easy_align = 1
-  Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
+  "Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
   Plug 'Chiel92/vim-autoformat', { 'on': 'Autoformat' }  " Trigger code formatting engines
 endif
 
@@ -179,7 +173,7 @@ endif
 
 if index(s:plugin_categories, 'linting_completion') >= 0
   if (v:version >= 800)
-    Plug 'w0rp/ale'                      " Asynchronous Lint Engine
+    Plug 'dense-analysis/ale'            " Asynchronous Lint Engine
     let s:have_ale = 1
 
     if exists('s:have_lightline')
@@ -187,14 +181,39 @@ if index(s:plugin_categories, 'linting_completion') >= 0
       let s:have_lightline_ale = 1
     endif
 
-    Plug 'neoclide/coc.nvim', {'do': './install.sh'}
-    let s:have_coc_nvim = 1
+    " Direct Neovim LSP support is very promising, but still a bit new and experimental...
+
+    "if has('nvim-0.5')
+    "  Plug 'neovim/nvim-lsp'
+    "  let s:have_nvim_lsp = 1
+
+    "  Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
+    "  let s:have_deoplete = 1
+    "else
+      Plug 'neoclide/coc.nvim', {'branch': 'release'}
+      let s:have_coc_nvim = 1
+
+      if executable('yarn')
+        Plug 'neoclide/coc-python', {'do': 'yarn install --frozen-lockfile'}
+        Plug 'neoclide/coc-json', {'do': 'yarn install --frozen-lockfile'}
+        Plug 'neoclide/coc-html', {'do': 'yarn install --frozen-lockfile'}
+        Plug 'neoclide/coc-css', {'do': 'yarn install --frozen-lockfile'}
+        Plug 'neoclide/coc-yaml', {'do': 'yarn install --frozen-lockfile'}
+      endif
+    "endif
+  endif
+endif
+
+if index(s:plugin_categories, 'markdown') >= 0
+  if executable('yarn')
+    Plug 'iamcco/markdown-preview.nvim', { 'do': 'cd app & yarn install' }
   endif
 endif
 
 if index(s:plugin_categories, 'semantic_highlighting') >= 0
   if has('nvim')
     Plug 'numirias/semshi', {'do': ':UpdateRemotePlugins'}  " Semantic highlighting in Neovim
+    let s:have_semshi = 1
     Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
     let s:have_chromatica = 1
   endif
@@ -211,24 +230,27 @@ if index(s:plugin_categories, 'misc') >= 0
 endif
 
 if index(s:plugin_categories, 'disabled') >= 0
-  Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
-  Plug 'tpope/vim-surround'              " 'surrounding' motion
-  Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
-  let s:have_buffergator = 1
-  Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
-  Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
-  let s:have_vim_markbar = 1
-  Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
-  Plug 'wincent/scalpel'                 " Faster within-file word replacement
-  Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
-  Plug 'SirVer/ultisnips'
-  "Plug 'honza/vim-snippets'
-  if has("unix") || has("macunix")
-    Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
-  endif
-  Plug 'psliwka/vim-smoothie'            " Smooth scrolling done right
-  Plug 'justinmk/vim-dirvish' ", { 'on': ['Dirvish'] }
-  Plug 'kristijanhusak/vim-dirvish-git' ", { 'on': ['Dirvish'] }
+  "Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
+  "Plug 'tpope/vim-surround'              " 'surrounding' motion
+  "Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
+  "let s:have_buffergator = 1
+  "Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
+  "Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
+  "let s:have_vim_markbar = 1
+  "Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
+  "Plug 'wincent/scalpel'                 " Faster within-file word replacement
+  "Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
+  "Plug 'SirVer/ultisnips'
+  ""Plug 'honza/vim-snippets'
+  "if has("unix") || has("macunix")
+  "  Plug 'jez/vim-superman'              " Read man pages with vim (vman command)
+  "endif
+  "Plug 'psliwka/vim-smoothie'            " Smooth scrolling done right
+  "Plug 'justinmk/vim-dirvish' ", { 'on': ['Dirvish'] }
+  "Plug 'kristijanhusak/vim-dirvish-git' ", { 'on': ['Dirvish'] }
+  "Plug 'mhinz/vim-startify'              " A fancy start screen
+  "Plug 'dstein64/vim-win'
+  "Plug 'nathanaelkane/vim-indent-guides', { 'on': ['IndentGuidesEnable', 'IndentGuidesDisable', 'IndentGuidesToggle'] }
 endif
 
 call plug#end()
@@ -312,24 +334,21 @@ endif
 syntax enable           " Enable syntax highlighting
 set background=dark     " Dark background color
 
-if !has("gui_running") && !has('nvim')
-  set term=screen-256color
-  set t_Co=256
+if !has('nvim')
+  " See :help xterm-true-color
+  let &t_8f = "\<Esc>[38:2:%lu:%lu:%lum"
+  let &t_8b = "\<Esc>[48:2:%lu:%lu:%lum"
 endif
+set termguicolors
 
 if index(s:plugin_categories, 'colorschemes') >= 0
-  let g:solarized_termcolors=256 " Use the inaccurate 256 color scheme for solarized.
-  if has('nvim')
-    set termguicolors
-  endif
-
-  if (exists('s:colorscheme_use_base16') && s:colorscheme_use_base16 == 1 && !has("gui_running") && filereadable(expand("~/.vimrc_background")))
+  if (!has("gui_running") && exists('s:colorscheme_use_base16') && s:colorscheme_use_base16 == 1 && filereadable(expand("~/.vimrc_background")))
     " Use the base16 color schemes, if available. See https://github.com/chriskempson/base16-shell.
-    let base16colorspace=256
+    "let base16colorspace=256   " Seems not needed for true color terminals
     source ~/.vimrc_background
   else
     " Use the color scheme defined above.
-    execute 'colorscheme ' . s:colorscheme
+    execute 'silent! colorscheme ' . s:colorscheme
   endif
 endif
 
@@ -365,16 +384,11 @@ if has("macunix") && has("gui_running")
   set macmeta
 endif
 
-" Better font in Windows GUI
-if has("win32") && has("gui_running")
-  set guifont=Consolas:h11
-endif
-
 augroup MichaelAutocmnds
   " Resize splits when window gets resized
   autocmd VimResized * wincmd =
   " Disable paste mode when leaving insert mode
-  autocmd InsertLeave * set nopaste
+  "autocmd InsertLeave * set nopaste
 augroup END
 
 " netrw
@@ -393,7 +407,7 @@ function! LineHome()
   return ""
 endfunction
 
-function! ToggleTextWidth()
+function! CycleThroughTextWidths()
   if &textwidth == 0
     let x = 80
   elseif &textwidth == 80
@@ -404,6 +418,19 @@ function! ToggleTextWidth()
   let &textwidth = x
   let &colorcolumn = x
   echo "Set textwidth and colorcolumn to" x
+endfunction
+
+function! CycleThroughLineNumberingModes()
+  if (&number == 0) && (&relativenumber == 0)
+    set number
+  elseif (&number == 1) && (&relativenumber == 0)
+    set relativenumber
+  elseif (&number == 1) && (&relativenumber == 1)
+    set nonumber
+  elseif (&number == 0) && (&relativenumber == 1)
+    set norelativenumber
+  endif
+  echo "Set number=" . &number . ", relativenumber=" . &relativenumber
 endfunction
 
 function! DeleteAllRegisters()
@@ -424,9 +451,11 @@ let mapleader = "\<Space>"
 " Use 'jj'/'jk' to exit insert mode; en-/disable as desired
 "inoremap jj <Esc>
 "inoremap jk <Esc>
+
+" For the iPad Pro keyboard without an Esc key
 inoremap § <Esc>
 
-" Disable K (might be mapped for LanguageClient_neovim)
+" Disable K (will be mapped later for coc.nvim)
 noremap K <nop>
 
 " Disable Q (to be mapped sensibly otherwise?)
@@ -458,23 +487,14 @@ noremap k gk
 noremap <C-d> 5<C-d>
 noremap <C-u> 5<C-u>
 
-" When using clever-f, , and ; can be remapped to something else
-if exists('s:have_clever_f')
-  if exists('s:have_fzf')
-    nnoremap <silent> , :Buffers<cr>
-  elseif exists('s:have_buffergator')
-    nnoremap <silent> , :BuffergatorOpen<cr>
-  endif
-  nnoremap <silent> ; :b#<cr>
-endif
-
 " Switch to previous/next buffer
-"noremap <silent> <A-j> :bprevious<cr>
-"noremap <silent> <A-k> :bnext<cr>
+noremap <silent> <A-j> :bprevious<cr>
+noremap <silent> <A-k> :bnext<cr>
 
 " Quick switching to alternate buffer
-"noremap <silent> <A-l> :b#<cr>
-nnoremap <silent> <leader>a :b#<cr>
+nnoremap <silent> \ :b#<cr>
+"nnoremap <silent> <leader>a :b#<cr>
+"nnoremap <silent> <leader><tab> :b#<cr>
 
 " Move to beginning of line/first whitespace character or end of line
 noremap <leader>0 :call LineHome()<cr>:echo<cr>
@@ -482,15 +502,15 @@ noremap <Home> :call LineHome()<cr>:echo<cr>
 inoremap <Home> <C-R>=LineHome()<cr>
 
 " Quick window switching with Ctrl-h/j/k/l
-noremap  <C-h>  <C-w>h
-noremap  <C-j>  <C-w>j
-noremap  <C-k>  <C-w>k
-noremap  <C-l>  <C-w>l
+"noremap  <C-h>  <C-w>h
+"noremap  <C-j>  <C-w>j
+"noremap  <C-k>  <C-w>k
+"noremap  <C-l>  <C-w>l
 
 " Movement in insert mode with Ctrl-h/j/k/l
-inoremap <C-k> <Up>
-inoremap <C-j> <Down>
 inoremap <C-h> <Left>
+inoremap <C-j> <Down>
+inoremap <C-k> <Up>
 inoremap <C-l> <Right>
 
 " Don't lose selection when shifting sidewards
@@ -498,7 +518,6 @@ xnoremap <  <gv
 xnoremap >  >gv
 
 " Shortcuts for window handling
-"nnoremap <leader>r <C-w>r  " rotate windows
 nnoremap <leader>w <C-w>c  " close current window
 
 " Window switching using <leader><number> (Source: http://stackoverflow.com/a/6404246/151007)
@@ -510,9 +529,8 @@ endwhile
 
 " Use | and _ to split windows (while preserving original behaviour of [count]bar and [count]_).
 " (http://howivim.com/2016/andy-stewart/)
-" (currently deactivated because of unwanted interactions e.g. with 'f_' when '_' is not contained in line)
-"nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><cr>"
-"nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<cr>"
+nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><cr>"
+nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<cr>"
 
 " Disable highlighting of search results
 nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
@@ -525,25 +543,23 @@ if s:remap_cursor_keys
   nnoremap <silent> <Right> :cnfile<cr>
 endif
 
-" F1: Switch line numbering
-noremap <F1> :set number!<cr>:set number?<cr>
+" F1: Cycle through (relative) line numbering modes
+noremap <F1> :call CycleThroughLineNumberingModes()<cr>
 
-" F2: Switch relative line numbering
-noremap <F2> :set relativenumber!<cr>:set relativenumber?<cr>
+" F2: Switch display of unprintable characters
+noremap <F2> :set list!<cr>:set list?<cr>
 
-" F3: Switch display of unprintable characters
-noremap <F3> :set list!<cr>:set list?<cr>
+" F3: Switch text wrapping
+noremap <F3> :set wrap!<cr>:set wrap?<cr>
 
-" F4: Switch text wrapping
-noremap <F4> :set wrap!<cr>:set wrap?<cr>
+" F4: Toggle text width
+noremap <silent> <F4> :call CycleThroughTextWidths()<cr>
 
 " F5: Switch paste mode
 noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
 
-" F6: Toggle text width
-noremap <silent> <F6> :call ToggleTextWidth()<cr>
+" F6-F10 mapped by coc.nvim below
 
-" F7-F10 mapped by coc.nvim below
 " F11: usually mapped to 'full screen' by terminal emulator
 
 " F12: Source .vimrc
@@ -681,7 +697,10 @@ if exists('s:have_signify')
 endif
 
 if exists('s:have_fzf')
-  nnoremap <silent> <C-p> :FZF<cr>
+  " Put fzf in a popup
+  " (https://github.com/junegunn/fzf.vim/issues/821#issuecomment-581481211)
+  let g:fzf_layout = { 'window': { 'width': 0.85, 'height': 0.6, 'highlight': 'Visual' } }
+
   nnoremap <silent> <leader>ff :Files<cr>
   nnoremap <silent> <leader>fb :Buffers<cr>
   nnoremap <silent> <leader>fw :Windows<cr>
@@ -690,7 +709,13 @@ if exists('s:have_fzf')
   nnoremap <silent> <leader>fl :Lines<cr>
   nnoremap <silent> <leader>fc :Commits<cr>
 
-  nnoremap <silent> \ :Buffers<cr>
+  nnoremap <silent> <C-h> :History<cr>
+  nnoremap <silent> <C-j> :Buffers<cr>
+  nnoremap <silent> <C-k> :Files<cr>
+  nnoremap <silent> <C-l> :Lines<cr>
+
+  nnoremap <silent> <C-p> :FZF<cr>
+  nnoremap <silent> <C-Space> :Buffers<cr>
 endif
 
 if exists('s:have_easy_align')
@@ -704,18 +729,14 @@ if exists('s:have_nerdtree')
   function! FocusOrCloseNERDTree()
     if bufname('') =~ "^NERD_tree_"
       :NERDTreeToggle
-      "wincmd =
     else
       :NERDTreeFocus
-      "wincmd =
     endif
   endfunction
 
   " Open or focus NERDTree with Ctrl-n, or close it if already focused
-  "nnoremap <silent> <expr> <C-n> bufname('') =~ "^NERD_tree_" ? ':NERDTreeClose<cr>' : ':NERDTreeFocus<cr>'
   nnoremap <silent> <C-n> :call FocusOrCloseNERDTree()<cr>
-  " Find current file in NERDTree
-  "noremap <silent> <F9> :NERDTreeFind<cr>
+
   let g:NERDTreeShowHidden=1
   let g:NERDTreeStatusline="%f"
   let g:NERDTreeWinPos="left"
@@ -739,6 +760,11 @@ if exists('s:have_sideways')
   nnoremap g> :SidewaysRight<cr>
 endif
 
+if exists('s:have_semshi')
+  " We'll let the LSP server take care of that.
+  let g:semshi#error_sign = v:false
+endif
+
 if exists('s:have_chromatica')
   let g:chromatica#libclang_path = fnamemodify(system("which clang"), ":p:h:h") . "/lib/libclang.so"
   let g:chromatica#enable_at_startup=0
@@ -747,35 +773,26 @@ if exists('s:have_chromatica')
 endif
 
 if exists('s:have_ale')
-  " - Enable some linters. Note that for proper C and C++ support, one should provide a .lvimrc file in the project
-  "   root directory, with the proper g:ale_c??_[clang|g++]_options settings. Basic options are set here, but they
-  "   most likely aren't sufficient for most projects (no include paths provided here).
+  " Enable some linters. Note that for proper C and C++ support, one should provide a .lvimrc file in the project
+  " root directory, with the proper g:ale_c??_[clang|g++]_options settings.
   let g:ale_linters = {
         \ 'json': 'all',
         \ 'markdown': 'all',
-        \ 'python': ['flake8', 'autopep8', 'mypy', 'black'],
+        \ 'python': 'all',
         \ 'tex': 'all',
         \ 'vim': 'all',
-        \ 'c': ['clang', 'gcc'],
-        \ 'cpp': ['clang', 'clangtidy', 'g++'],
+        \ 'c': ['clangtidy'],
+        \ 'cpp': ['clangtidy'],
         \ }
 
-  "let g:ale_fixers = {
-  "      \ '*': ['remove_trailing_lines', 'trim_whitespace'],
-  "      \ 'cpp': ['clang-format'],
-  "      \ }
+  let g:ale_fixers = {
+        \ 'c': ['clangtidy'],
+        \ 'cpp': ['clangtidy'],
+        \ }
 
-  "let g:ale_open_list = 0
-  "let g:ale_lint_delay = 1500
-
-  "let s:ale_c_opts = '-std=c11 -Wall -Wextra -Werror'
-  "let g:ale_c_gcc_options = s:ale_c_opts
-  "let g:ale_c_clang_options = s:ale_c_opts
-
-  "let s:ale_cpp_opts = '-std=c++17 -Wall -Wextra -Werror -fexceptions'
-  "let g:ale_cpp_gcc_options = s:ale_cpp_opts
-  "let g:ale_cpp_clang_options = s:ale_cpp_opts
-  "let g:ale_cpp_clangtidy_options = s:ale_cpp_opts
+  let g:ale_open_list = 0
+  let g:ale_lint_delay = 500
+  let g:ale_disable_lsp = 1   " coc.nvim is doing all the LSP stuff
 endif
 
 if exists('s:have_coc_nvim')
@@ -796,7 +813,7 @@ if exists('s:have_coc_nvim')
 
   " Use TAB to trigger completion, and navigate through list. (Use ':verbose imap <tab>' to ensure TAB is not mapped.)
   inoremap <silent><expr> <tab> pumvisible() ? "\<C-n>" : <SID>check_whitespace_backwards() ? "\<tab>" : coc#refresh()
-  inoremap <silent><expr><S-tab> pumvisible() ? "\<C-p>" : "\<C-h>"
+  inoremap <silent><expr> <S-tab> pumvisible() ? "\<C-p>" : "\<C-h>"
 
   " Use Ctrl-Space to trigger completion.
   inoremap <silent><expr> <C-space> coc#refresh()
@@ -809,23 +826,46 @@ if exists('s:have_coc_nvim')
   nmap <silent> ]c <Plug>(coc-diagnostic-next)
 
   " Map function keys for LSP functionality
-  nmap <silent> <F7> <Plug>(coc-definition)
-  nmap <silent> <F8> <Plug>(coc-type-definition)
-  nmap <silent> <F9> <Plug>(coc-implementation)
+  nmap <silent> <F6>  <Plug>(coc-rename)
+  nmap <silent> <F7>  <Plug>(coc-type-definition)
+  nmap <silent> <F8>  <Plug>(coc-definition)
+  nmap <silent> <F9>  <Plug>(coc-implementation)
   nmap <silent> <F10> <Plug>(coc-references)
 
   " Use K to show documentation in preview window
-  nnoremap <silent> K :call <SID>show_documentation()<CR>
-
-  " Highlight symbol under cursor on CursorHold
-  autocmd CursorHold * silent call CocActionAsync('highlight')
-
-  " Remap for rename current word
-  nmap <leader>rn <Plug>(coc-rename)
+  nnoremap <silent> K :call <sid>show_documentation()<cr>
 
   " Remap for format selected region
   xmap <leader>fo <Plug>(coc-format-selected)
   nmap <leader>fo <Plug>(coc-format-selected)
+endif
+
+if exists('s:have_nvim_lsp')
+lua << EOF
+  require'nvim_lsp'.ccls.setup{}
+  require'nvim_lsp'.pyls.setup{}
+  require'nvim_lsp'.vimls.setup{}
+  require'nvim_lsp'.bashls.setup{}
+  require'nvim_lsp'.yamlls.setup{}
+  require'nvim_lsp'.cssls.setup{}
+EOF
+
+  nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<cr>
+  nnoremap <silent> <C-k> <cmd>lua vim.lsp.buf.signature_help()<cr>
+  "nnoremap <silent> <F6>  <cmd>lua vim.lsp.buf.declaration()<cr>
+  "nnoremap <silent> <F6>  <cmd>lua vim.lsp.buf.rename()<cr>
+  nnoremap <silent> <F7>  <cmd>lua vim.lsp.buf.type_definition()<cr>
+  nnoremap <silent> <F8>  <cmd>lua vim.lsp.buf.definition()<cr>
+  nnoremap <silent> <F9>  <cmd>lua vim.lsp.buf.implementation()<cr>
+  nnoremap <silent> <F10> <cmd>lua vim.lsp.buf.references()<cr>
+
+  " Use LSP omni-completion
+  autocmd Filetype python setlocal omnifunc=v:lua.vim.lsp.omnifunc
+  autocmd Filetype cpp    setlocal omnifunc=v:lua.vim.lsp.omnifunc
+endif
+
+if exists('s:have_deoplete')
+  let g:deoplete#enable_at_startup = 1
 endif
 
 if exists('s:have_goyo')
@@ -833,20 +873,3 @@ if exists('s:have_goyo')
   autocmd! User GoyoEnter Limelight
   autocmd! User GoyoLeave Limelight!
 endif
-
-"if exists('s:have_buffergator')
-"  " - Width of the buffergator window
-"  let g:buffergator_viewport_split_policy = "B"
-"  let g:buffergator_split_size = 16
-"  let g:buffergator_autoupdate = 1
-"  let g:buffergator_sort_regime = "mru"
-"  let g:buffergator_suppress_mru_switching_keymaps = 1
-"endif
-
-"if exists('s:have_vim_markbar')
-"  map <Leader>m <Plug>ToggleMarkbar
-"  let g:markbar_width = 40
-"  let g:markbar_num_lines_context = 3
-"  "let g:markbar_marks_to_display = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-"endif
-
