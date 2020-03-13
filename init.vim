@@ -1,10 +1,12 @@
-" Michael's .vimrc
+" Michael's init.vim
 " (https://github.com/kmhofmann/dotfiles)
 " =======================================
 "
 " Installation:
 "
-" * $ cp .vimrc ~
+" * $ cp init.vim ~/.config/nvim/
+"
+" * Although not tested as extensively, this file should be also usable as a .vimrc for Vim 8+.
 "
 " * If not present yet, the plugin manager vim-plug will be bootstrapped.
 "   See https://github.com/junegunn/vim-plug on how to use vim-plug.
@@ -16,12 +18,7 @@
 "   documentation.
 "
 " * Language server support can be either provided by LanguageClient_Neovim, coc.nvim, or the build-in Neovim LSP
-"   client. By default, LanguageClient_Neovim will be selected, unless another option is chosen below.
-"
-" * coc.nvim requires node.js and yarn to be installed.
-"   Some language support (Python, YAML, HTML, CSS, ...?) is being installed as explicit plugins below.
-"   Other languages may require language servers to be installed; see http://langserver.org/.
-"   For example, ccls (https://github.com/MaskRay/ccls) for C++. Install using CMake and add binary to PATH.
+"   client. Choose exactly one below.
 "
 " * Some language servers:   (see also here for a good overview: https://github.com/neovim/nvim-lsp)
 "   - C++:        See https://github.com/MaskRay/ccls
@@ -35,6 +32,11 @@
 "   - Dockerfile: yarn global add dockerfile-language-server-nodejs
 "   - ...
 "   For all servers installed with 'yarn global add', $HOME/.yarn/bin needs to be in the $PATH.
+"
+" * coc.nvim requires node.js and yarn to be installed.
+"   Some language support (Python, YAML, HTML, CSS, ...?) is being installed as explicit plugins below.
+"   Other languages may require language servers to be installed; see http://langserver.org/.
+"   For example, ccls (https://github.com/MaskRay/ccls) for C++. Install using CMake and add binary to PATH.
 "
 " * nvim: You may have to install the Python 'pynvim' package for some plugins to work correctly.
 "   $ pip install [--user] --upgrade pynvim
@@ -54,6 +56,7 @@ let s:plugin_categories += ['version_control']
 let s:plugin_categories += ['development']
 let s:plugin_categories += ['linting_completion']
 let s:plugin_categories += ['semantic_highlighting']
+let s:plugin_categories += ['julia']
 let s:plugin_categories += ['markdown']
 let s:plugin_categories += ['misc']
 "let s:plugin_categories += ['latex']
@@ -64,11 +67,12 @@ let s:colorscheme = 'vim-monokai-tasty'
 
 " Set these options to your liking
 let s:faster_redraw = 0      " Faster redraw disables relative line numbers and cursorline
-let s:remap_cursor_keys = 0  " Remap cursor keys
+let s:remap_cursor_keys = 1  " Remap cursor keys
 
-" If neither of these is specified, then LanguageClient_Neovim will be used.
+" Choose maximum one of these.
+let s:use_nvim_lsp = 0  " Direct Neovim LSP support is very promising, but still a bit new and experimental...
+let s:use_languageclient = 1
 let s:use_coc_nvim = 0
-let s:use_nvim_lsp = 0
 
 " Disable a few providers -- enable when needed
 if has('nvim')
@@ -101,6 +105,7 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'rhysd/vim-color-spring-night'
   Plug 'Nequo/vim-allomancer'
   Plug 'flrnprz/plastic.vim'
+  Plug 'dracula/vim', { 'as': 'dracula' }
 
   " Enable these if desired:
   "Plug 'altercation/vim-colors-solarized'
@@ -111,7 +116,6 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   "Plug 'google/vim-colorscheme-primary'
   "Plug 'erichdongubler/vim-sublime-monokai'
   "Plug 'euclio/vim-nocturne'
-  "Plug 'dracula/vim', { 'as': 'dracula' }
 endif
 
 if index(s:plugin_categories, 'basic') >= 0
@@ -123,29 +127,27 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree
   let s:have_localvimrc = 1
+  Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
   Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window
   let s:have_bbye = 1
   Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }  " Easier session handling
 endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
-  Plug 'bronson/vim-visual-star-search'  " Lets * and # perform search in visual mode
   Plug 'haya14busa/is.vim'               " Improved incremental search
   Plug 'andymass/vim-matchup'            " Improved % motion
-  "Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
-  "let s:have_clever_f = 1
   Plug 'mhinz/vim-grepper', { 'on': ['Grepper', '<plug>(GrepperOperator)'] }  " Easier grepping
   let s:have_grepper = 1
 endif
 
 if index(s:plugin_categories, 'textediting') >= 0
   Plug 'machakann/vim-sandwich'          " better 'surrounding' motion (conflicts with vim-sneak)
-  Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
-  let s:have_easyclip = 1
   Plug 'drzel/vim-split-line'
   let s:have_splitline = 1
   Plug 'AndrewRadev/sideways.vim'        " Move function arguments sideways
   let s:have_sideways = 1
+  Plug 'svermeulen/vim-easyclip'         " Improved clipboard functionality
+  let s:have_easyclip = 1
 endif
 
 if index(s:plugin_categories, 'ui_additions') >= 0
@@ -157,6 +159,8 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   let s:have_undotree = 1
   Plug 'Yggdroot/indentLine'
   let s:have_indent_line = 1
+  Plug 'liuchengxu/vim-which-key', { 'on': ['WhichKey', 'WhichKey!'] }
+  let s:have_which_key = 1
 endif
 
 if index(s:plugin_categories, 'filesearch') >= 0
@@ -194,54 +198,51 @@ if index(s:plugin_categories, 'development') >= 0
   endif
 endif
 
-if index(s:plugin_categories, 'linting_completion') >= 0
-  if (v:version >= 800)
-    Plug 'dense-analysis/ale'            " Asynchronous Lint Engine
-    let s:have_ale = 1
+if index(s:plugin_categories, 'linting_completion') >= 0 && (v:version >= 800)
+  Plug 'dense-analysis/ale'            " Asynchronous Lint Engine
+  let s:have_ale = 1
 
-    if exists('s:have_lightline')
-      Plug 'maximbaz/lightline-ale'      " ALE indicator for Lightline
-      let s:have_lightline_ale = 1
+  if exists('s:have_lightline')
+    Plug 'maximbaz/lightline-ale'      " ALE indicator for Lightline
+    let s:have_lightline_ale = 1
+  endif
+
+  if s:use_nvim_lsp && has('nvim-0.5')
+    Plug 'neovim/nvim-lsp'             " Configurations for the Neovim LSP client
+    let s:have_nvim_lsp = 1
+  endif
+
+  if s:use_languageclient
+    Plug 'autozimu/LanguageClient-neovim', { 'branch': 'next', 'do': 'bash install.sh' }  " Popular LSP client implementation
+    let s:have_language_client_neovim = 1
+  endif
+
+  if s:use_coc_nvim
+    Plug 'neoclide/coc.nvim', {'branch': 'release'}  " Full Intellisense-style engine implementation, including LSP client
+    let s:have_coc_nvim = 1
+
+    if executable('yarn')
+      Plug 'neoclide/coc-python', {'do': 'yarn install --frozen-lockfile'}
+      Plug 'neoclide/coc-json', {'do': 'yarn install --frozen-lockfile'}
+      Plug 'neoclide/coc-html', {'do': 'yarn install --frozen-lockfile'}
+      Plug 'neoclide/coc-css', {'do': 'yarn install --frozen-lockfile'}
+      Plug 'neoclide/coc-yaml', {'do': 'yarn install --frozen-lockfile'}
     endif
+  endif
 
-    if s:use_coc_nvim
-      Plug 'neoclide/coc.nvim', {'branch': 'release'}
-      let s:have_coc_nvim = 1
+  " Install Deoplete for nvim-lsp and LanguageClient-neovim.
+  if exists('s:have_nvim_lsp') || exists('s:use_languageclient')
+    Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }  " Asynchronous completion framework
+    Plug 'Shougo/deoplete-lsp'  " ...and integration of LSP support
+    if !has('nvim')
+      Plug 'roxma/nvim-yarp'
+      Plug 'roxma/vim-hug-neovim-rpc'
+    endif
+    let s:have_deoplete = 1
 
-      if executable('yarn')
-        Plug 'neoclide/coc-python', {'do': 'yarn install --frozen-lockfile'}
-        Plug 'neoclide/coc-json', {'do': 'yarn install --frozen-lockfile'}
-        Plug 'neoclide/coc-html', {'do': 'yarn install --frozen-lockfile'}
-        Plug 'neoclide/coc-css', {'do': 'yarn install --frozen-lockfile'}
-        Plug 'neoclide/coc-yaml', {'do': 'yarn install --frozen-lockfile'}
-      endif
-    else
-
-      " Direct Neovim LSP support is very promising, but still a bit new and experimental...
-      if has('nvim-0.5') && s:use_nvim_lsp
-        Plug 'neovim/nvim-lsp'
-        let s:have_nvim_lsp = 1
-      else
-        Plug 'autozimu/LanguageClient-neovim', {
-            \ 'branch': 'next',
-            \ 'do': 'bash install.sh',
-            \ }
-        let s:have_language_client_neovim = 1
-      endif
-
-      Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
-      Plug 'Shougo/deoplete-lsp'
-      if !has('nvim')
-        Plug 'roxma/nvim-yarp'
-        Plug 'roxma/vim-hug-neovim-rpc'
-      endif
-      let s:have_deoplete = 1
-
-      if has('nvim')
-        Plug 'ncm2/float-preview.nvim'
-        let s:have_float_preview = 1
-      endif
-
+    if has('nvim')
+      Plug 'ncm2/float-preview.nvim'  " Nicer completion preview window
+      let s:have_float_preview = 1
     endif
   endif
 endif
@@ -252,9 +253,13 @@ if index(s:plugin_categories, 'semantic_highlighting') >= 0
     let s:have_semshi = 1
     "Plug 'arakashic/chromatica.nvim', { 'do': ':UpdateRemotePlugins', 'on': ['ChromaticaStart', 'ChromaticaStop', 'ChromaticaToggle', 'ChromaticaShowInfo', 'ChromaticaDbgAST', 'ChromaticaEnableLog'] }
     "let s:have_chromatica = 1
-    Plug 'jackguo380/vim-lsp-cxx-highlight'  " Semantic highlighting for C++
-    let s:have_vim_lsp_cxx_highlight = 1
   endif
+  Plug 'jackguo380/vim-lsp-cxx-highlight'  " Semantic highlighting for C++
+  let s:have_vim_lsp_cxx_highlight = 1
+endif
+
+if index(s:plugin_categories, 'julia') >= 0
+  Plug 'JuliaEditorSupport/julia-vim'
 endif
 
 if index(s:plugin_categories, 'markdown') >= 0
@@ -274,6 +279,8 @@ if index(s:plugin_categories, 'misc') >= 0
 endif
 
 if index(s:plugin_categories, 'disabled') >= 0
+  "Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
+  "let s:have_clever_f = 1
   "Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
   "Plug 'tpope/vim-surround'              " 'surrounding' motion
   "Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
@@ -281,7 +288,6 @@ if index(s:plugin_categories, 'disabled') >= 0
   "Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
   "Plug 'Yilin-Yang/vim-markbar'          " Display accessible marks and surrounding lines in collapsible sidebar
   "let s:have_vim_markbar = 1
-  "Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one
   "Plug 'wincent/scalpel'                 " Faster within-file word replacement
   "Plug 'nacitar/a.vim', { 'on': ['A'] }  " Easy switching between header and translation unit
   "Plug 'SirVer/ultisnips'
@@ -429,8 +435,9 @@ if has("macunix") && has("gui_running")
 endif
 
 augroup MichaelAutocmnds
+  au!
   " Resize splits when window gets resized
-  autocmd VimResized * wincmd =
+  "autocmd VimResized * wincmd =
   " Disable paste mode when leaving insert mode
   "autocmd InsertLeave * set nopaste
 augroup END
@@ -455,6 +462,8 @@ function! CycleThroughTextWidths()
   if &textwidth == 0
     let x = 80
   elseif &textwidth == 80
+    let x = 88
+  elseif &textwidth == 88  " Black (Python)
     let x = 120
   elseif &textwidth == 120
     let x = 0
@@ -482,6 +491,19 @@ function! s:CheckLastCharIsWhitespace() abort
   return !cursor_col || getline('.')[cursor_col - 1]  =~# '\s'
 endfunction
 
+" See https://github.com/bronson/vim-visual-star-search/blob/master/plugin/visual-star-search.vim
+function! VisualStarSearchSet(cmdtype,...)
+  let temp = @"
+  normal! gvy
+  if !a:0 || a:1 != 'raw'
+    let @" = escape(@", a:cmdtype.'\*')
+  endif
+  let @/ = substitute(@", '\n', '\\n', 'g')
+  let @/ = substitute(@/, '\[', '\\[', 'g')
+  let @/ = substitute(@/, '\~', '\\~', 'g')
+  let @" = temp
+endfunction
+
 function! DeleteAllRegisters()
   let regs=split('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/-"', '\zs')
   for r in regs
@@ -502,10 +524,10 @@ let mapleader = "\<Space>"
 "inoremap jk <Esc>
 inoremap <C-c> <Esc>
 
-" For the iPad Pro keyboard without an Esc key and akward Ctrl placement
+" For the iPad Pro keyboard without an Esc key and awkward Ctrl placement
 inoremap § <Esc>
 
-" Disable K (will be mapped later for coc.nvim)
+" Disable K (will be mapped later for LSP support)
 noremap K <nop>
 
 " Disable Q (will be mapped later for Deoplete)
@@ -521,10 +543,15 @@ vnoremap . :normal .<cr>
 " Possibly faster file-level word replacement (https://youtu.be/7Bx_mLDBtRc)
 nnoremap c* *Ncgn
 
+" Lets * and # perform search in visual mode
+xnoremap * :<C-u>call VisualStarSearchSet('/')<CR>/<C-R>=@/<CR><CR>
+xnoremap # :<C-u>call VisualStarSearchSet('?')<CR>?<C-R>=@/<CR><CR>
+
 if !exists('s:have_easyclip')
   " Paste from yank register with <leader>p/P
   noremap <leader>p "0p
   noremap <leader>P "0P
+
   " Map Y to behave like C, D
   nmap Y y$
 endif
@@ -541,15 +568,6 @@ nnoremap <silent> { :<C-u>execute "keepjumps norm! " . v:count1 . "{"<cr>
 noremap <C-d> 5<C-d>
 noremap <C-u> 5<C-u>
 
-" Switch to previous/next buffer
-noremap <silent> <A-j> :bprevious<cr>
-noremap <silent> <A-k> :bnext<cr>
-
-" Quick switching to alternate buffer
-nnoremap <silent> \ :b#<cr>
-"nnoremap <silent> <leader>a :b#<cr>
-"nnoremap <silent> <leader><tab> :b#<cr>
-
 " Move to beginning of line/first whitespace character or end of line
 noremap <leader>0 :call LineHome()<cr>:echo<cr>
 noremap <Home> :call LineHome()<cr>:echo<cr>
@@ -562,6 +580,9 @@ inoremap <Home> <C-R>=LineHome()<cr>
 "inoremap <C-j> <C-o>b
 "inoremap <C-k> <C-o>w
 
+" Disable highlighting of search results
+nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
+
 " Start a new undo sequence when using Ctrl-w (delete last word) or Ctrl-u (delete line) in insert mode
 inoremap <c-u> <c-g>u<c-u>
 inoremap <c-w> <c-g>u<c-w>
@@ -570,57 +591,75 @@ inoremap <c-w> <c-g>u<c-w>
 xnoremap <  <gv
 xnoremap >  >gv
 
+" Buffer handling shortcuts
+" - Switch to previous/next buffer
+"nnoremap <leader>[ :bprevious<cr>
+"nnoremap <leader>] :bnext<cr>
+noremap <silent> <A-j> :bprevious<cr>
+noremap <silent> <A-k> :bnext<cr>
+
+" - Quick switching to alternate buffer
+nnoremap <silent> \ :b#<cr>
+
 " Shortcuts for window handling
-nnoremap <leader>w <C-w>c  " close current window
+" - Close current window
+nnoremap <leader>w <C-w>c
 
 " Window switching using <leader><number> (Source: http://stackoverflow.com/a/6404246/151007)
-let i = 1
-while i <= 9
-  execute 'nnoremap <silent> <leader>'.i.' :'.i.'wincmd w<cr>'
-  let i = i + 1
-endwhile
+"let i = 1
+"while i <= 9
+"  execute 'nnoremap <silent> <leader>'.i.' :'.i.'wincmd w<cr>'
+"  let i = i + 1
+"endwhile
 
 " Use | and _ to split windows (while preserving original behaviour of [count]bar and [count]_).
 " (http://howivim.com/2016/andy-stewart/)
 nnoremap <expr><silent> <Bar> v:count == 0 ? "<C-W>v<C-W><Right>" : ":<C-U>normal! 0".v:count."<Bar><cr>"
 nnoremap <expr><silent> _     v:count == 0 ? "<C-W>s<C-W><Down>"  : ":<C-U>normal! ".v:count."_<cr>"
 
-" Disable highlighting of search results
-nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
+" Shortcuts for tab handling (:tabprevious and :tabnext are already mapped to C-PgUp and C-PgDn)
+"nnoremap <A-n> :tabnew<cr>
+"nnoremap <A-c> :tabclose<cr>
 
-" Cursor keys for nicer quickfix list handling
 if s:remap_cursor_keys
-  nnoremap <silent> <Up> :cprevious<cr>
-  nnoremap <silent> <Down> :cnext<cr>
-  nnoremap <silent> <Left> :cpfile<cr>
-  nnoremap <silent> <Right> :cnfile<cr>
+  " Remap cursor keys for faster window switching
+  nnoremap <silent> <Up> <C-w>k
+  nnoremap <silent> <Down> <C-w>j
+  nnoremap <silent> <Left> <C-w>h
+  nnoremap <silent> <Right> <C-w>l
+
+  " Remap cursor keys for nicer quickfix list handling
+  nnoremap <silent> <leader><Up> :cprevious<cr>
+  nnoremap <silent> <leader><Down> :cnext<cr>
+  nnoremap <silent> <leader><Left> :cpfile<cr>
+  nnoremap <silent> <leader><Right> :cnfile<cr>
 endif
 
 " F1: Cycle through (relative) line numbering modes
 noremap <F1> :call CycleThroughLineNumberingModes()<cr>
 
-" F2: Switch display of unprintable characters
-noremap <F2> :set list!<cr>:set list?<cr>
+" F2: Toggle text width
+noremap <silent> <F2> :call CycleThroughTextWidths()<cr>
 
-" F3: Switch text wrapping
-noremap <F3> :set wrap!<cr>:set wrap?<cr>
+" F3: Switch display of unprintable characters
+noremap <F3> :set list!<cr>:set list?<cr>
 
-" F4: Toggle text width
-noremap <silent> <F4> :call CycleThroughTextWidths()<cr>
+" F4: Switch text wrapping
+noremap <F4> :set wrap!<cr>:set wrap?<cr>
 
 " F5: Switch paste mode
 noremap <F5> :setlocal paste!<cr>:setlocal paste?<cr>
 
-" F6-F10 mapped by coc.nvim below
+" F6-F10 mapped by language server client; see below
 
 " F11: usually mapped to 'full screen' by terminal emulator
 
 " F12: Source $MYVIMRC
-noremap <silent> <F12> :source $MYVIMRC<cr> :echo "Sourced " . $MYVIMRC . ". (" . strftime('%c'). ")"<cr>
+noremap <silent> <F12> :source $MYVIMRC<cr>:echo "Sourced " . $MYVIMRC . ". (" . strftime('%c'). ")"<cr>
 
 " Shortcut to quickly change/edit $MYVIMRC
-nnoremap <silent> <Leader>cv :edit $MYVIMRC<cr>
-nnoremap <silent> <Leader>vv :source $MYVIMRC<cr> :echo "Sourced " . $MYVIMRC . ". (" . strftime('%c'). ")"<cr>
+nnoremap <silent> <Leader>vc :edit $MYVIMRC<cr>
+nnoremap <silent> <Leader>vv :source $MYVIMRC<cr>:echo "Sourced " . $MYVIMRC . ". (" . strftime('%c'). ")"<cr>
 
 " Miscellaneous settings
 "=======================================
@@ -633,6 +672,10 @@ cnoremap <expr> %% getcmdtype() == ':' ? expand('%:h').'/' : '%%'
 
 " Plugin configurations
 "=======================================
+
+if exists('s:have_which_key')
+  nnoremap <silent> <leader> :<C-u>WhichKey '<Space>'<cr>
+endif
 
 if exists('s:have_grepper')
   " Maps the Grepper operator for normal and visual mode
@@ -755,27 +798,34 @@ if exists('s:have_signify')
 endif
 
 if exists('s:have_fzf')
-  " Put fzf in a popup
-  " (https://github.com/junegunn/fzf.vim/issues/821#issuecomment-581481211)
   if has('nvim')
-    let g:fzf_layout = { 'window': { 'width': 0.85, 'height': 0.6, 'highlight': 'Visual' } }
+    " Put fzf in a popup
+    " (https://github.com/junegunn/fzf.vim/issues/821#issuecomment-581481211)
+    let g:fzf_layout = { 'window': { 'width': 0.85, 'height': 0.75, 'highlight': 'Visual' } }
   endif
 
-  nnoremap <silent> <leader>ff :Files<cr>
-  nnoremap <silent> <leader>fb :Buffers<cr>
-  nnoremap <silent> <leader>fw :Windows<cr>
-  nnoremap <silent> <leader>fm :Marks<cr>
   nnoremap <silent> <leader>fh :History<cr>
+  nnoremap <silent> <leader>fb :Buffers<cr>
+  nnoremap <silent> <leader>ff :Files<cr>
   nnoremap <silent> <leader>fl :Lines<cr>
+
+  nnoremap <silent> <leader>fw :Windows<cr>
   nnoremap <silent> <leader>fc :Commits<cr>
+  nnoremap <silent> <leader>fm :Marks<cr>
+  nnoremap <silent> <leader>fp :Maps<cr>
+  nnoremap <silent> <leader>fo :Commands<cr>
+  nnoremap <silent> <leader>f: :History:<cr>
+  nnoremap <silent> <leader>f/ :History/<cr>
+  nnoremap <silent> <leader>fg :GFiles?<cr>
 
   nnoremap <silent> <C-h> :History<cr>
   nnoremap <silent> <C-j> :Buffers<cr>
   nnoremap <silent> <C-k> :Files<cr>
   nnoremap <silent> <C-l> :Lines<cr>
+  nnoremap <silent> <C-p> :BLines<cr>
 
-  nnoremap <silent> <C-p> :FZF<cr>
-  "nnoremap <silent> <C-Space> :Buffers<cr>
+  nnoremap <silent> <C-Space> :Buffers<cr>
+  "nnoremap <silent> <C-\> :GFiles?<cr>
 endif
 
 if exists('s:have_easy_align')
@@ -794,13 +844,28 @@ if exists('s:have_nerdtree')
     endif
   endfunction
 
+  function! NTFindOrCloseNERDTree()
+    if bufname('') =~ "^NERD_tree_"
+      :NERDTreeToggle
+    else
+      :NERDTreeFind
+    endif
+  endfunction
+
   " Open or focus NERDTree with Ctrl-n, or close it if already focused
   nnoremap <silent> <C-n> :call FocusOrCloseNERDTree()<cr>
+  nnoremap <silent> <leader>n :call NTFindOrCloseNERDTree()<cr>
 
   let g:NERDTreeShowHidden=1
-  let g:NERDTreeStatusline="%f"
+  let g:NERDTreeQuitOnOpen = 3
+  let g:NERDTreeMinimalUI = 1
+  let g:NERDTreeHijackNetrw = 0
+
   let g:NERDTreeWinPos="left"
+  let g:NERDTreeWinSize=28
+
   let NERDTreeIgnore = ['\.pyc$', '__pycache__', '.swp']
+
   " - Close vim if the only window left is a NERDTree
   autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 endif
@@ -812,7 +877,7 @@ endif
 
 if exists('s:have_indent_line')
   let g:indentLine_enabled = 0
-  nnoremap <Leader>i :IndentLinesToggle<cr>
+  nnoremap <silent> <Leader>i :IndentLinesToggle<cr>
   "let g:indentLine_setColors = 0
   "let g:indentLine_char = '┆'
 endif
@@ -867,8 +932,8 @@ if exists('s:have_chromatica')
 endif
 
 if exists('s:have_vim_lsp_cxx_highlight')
-  let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
-  let g:lsp_cxx_hl_verbose_log = 1
+  "let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
+  "let g:lsp_cxx_hl_verbose_log = 1
 endif
 
 if exists('s:have_ale')
@@ -1001,12 +1066,19 @@ endif
 
 if exists('s:have_language_client_neovim')
   let g:LanguageClient_serverCommands = {}
+  let g:LanguageClient_rootMarkers = {}
   if executable('ccls')
     let s:ccls_settings = {
         \ 'highlight': { 'lsRanges' : v:true },
         \ }
-    let g:LanguageClient_serverCommands.cpp = ['ccls', '-init=' . json_encode(s:ccls_settings)]
     let g:LanguageClient_serverCommands.c = ['ccls', '-init=' . json_encode(s:ccls_settings)]
+    let g:LanguageClient_serverCommands.cpp = ['ccls', '-init=' . json_encode(s:ccls_settings)]
+    let g:LanguageClient_serverCommands.cuda = ['ccls', '-init=' . json_encode(s:ccls_settings)]
+    let g:LanguageClient_serverCommands.objc = ['ccls', '-init=' . json_encode(s:ccls_settings)]
+    let g:LanguageClient_rootMarkers['c'] = ['compile_commands.json', '.ccls', '.ccls_root']
+    let g:LanguageClient_rootMarkers['cpp'] = ['compile_commands.json', '.ccls', '.ccls_root']
+    let g:LanguageClient_rootMarkers['cuda'] = ['compile_commands.json', '.ccls', '.ccls_root']
+    let g:LanguageClient_rootMarkers['objc'] = ['compile_commands.json', '.ccls', '.ccls_root']
   endif
   if executable('pyls')
     let g:LanguageClient_serverCommands.python = ['pyls']
@@ -1030,18 +1102,45 @@ if exists('s:have_language_client_neovim')
     let g:LanguageClient_serverCommands.dockerfile = ['docker-langserver', '--stdio']
   endif
 
+  " Does not work as-is...
+  "if index(s:plugin_categories, 'julia') >= 0
+  "  "let g:default_julia_version = '1.0'
+  "  let g:LanguageClient_serverCommands.julia =
+  "    \ ['julia', '--startup-file=no', '--history-file=no', '-e', '
+  "    \   using LanguageServer;
+  "    \   using Pkg;
+  "    \   import StaticLint;
+  "    \   import SymbolServer;
+  "    \   debug = true; 
+  "    \   env_path = dirname(Pkg.Types.Context().env.project_file);
+  "    \   server = LanguageServer.LanguageServerInstance(stdin, stdout, debug, env_path, "");
+  "    \   server.runlinter = true;
+  "    \   run(server); ']
+  "endif
+
   let g:LanguageClient_selectionUI = "location-list"
   "let g:LanguageClient_useVirtualText = "Diagnostics"
 
-  setlocal completefunc=LanguageClient#complete
+  "let s:vim_home = expand('<sfile>:p:h')  " (n)vim configuration directory
+  "let g:LanguageClient_loadSettings = 1
+  "let g:LanguageClient_settingsPath = s:vim_home . '/language_client_settings.json'
+  "let g:LanguageClient_loggingFile = s:vim_home . '/language_client_log.txt'
+
+  "setlocal completefunc=LanguageClient#complete
   setlocal formatexpr=LanguageClient_textDocument_rangeFormatting()
 
-  nnoremap <silent> K     :call LanguageClient_textDocument_hover()<cr>
-  nnoremap <silent> <F6>  :call LanguageClient_textDocument_rename()<cr>
-  nnoremap <silent> <F7>  :call LanguageClient_textDocument_typeDefinition()<cr>
-  nnoremap <silent> <F8>  :call LanguageClient_textDocument_definition()<cr>
-  nnoremap <silent> <F9>  :call LanguageClient_textDocument_references()<cr>
-  nnoremap <silent> <F10> :call LanguageClient_textDocument_implementation()<cr>
+  function LC_maps()
+    if has_key(g:LanguageClient_serverCommands, &filetype)
+      nnoremap <silent> K     :call LanguageClient_textDocument_hover()<cr>
+      nnoremap <silent> <F6>  :call LanguageClient_textDocument_rename()<cr>
+      nnoremap <silent> <F7>  :call LanguageClient_textDocument_typeDefinition()<cr>
+      nnoremap <silent> <F8>  :call LanguageClient_textDocument_definition()<cr>
+      nnoremap <silent> <F9>  :call LanguageClient_textDocument_references()<cr>
+      nnoremap <silent> <F10> :call LanguageClient_textDocument_implementation()<cr>
+    endif
+  endfunction
+
+  autocmd FileType * call LC_maps()
 endif
 
 if exists('s:have_deoplete')
@@ -1069,6 +1168,7 @@ if exists('s:have_deoplete')
     let s:deoplete_enabled = 1 - s:deoplete_enabled
   endfunction
 
+  " Shortcut to disable Deoplete
   nnoremap Q :call CheckDeopleteStatus()<cr>
 endif
 
