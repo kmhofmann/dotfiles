@@ -56,12 +56,13 @@ let s:plugin_categories += ['version_control']
 let s:plugin_categories += ['development']
 let s:plugin_categories += ['linting_completion']
 let s:plugin_categories += ['semantic_highlighting']
-let s:plugin_categories += ['julia']
-let s:plugin_categories += ['markdown']
-let s:plugin_categories += ['misc']
+"let s:plugin_categories += ['julia']
+"let s:plugin_categories += ['markdown']
+"let s:plugin_categories += ['misc']
 "let s:plugin_categories += ['latex']
 "let s:plugin_categories += ['disabled']
 
+let s:set_t_8f_t_8b_options = 0
 let s:colorscheme_use_base16 = 1
 let s:colorscheme = 'vim-monokai-tasty'
 
@@ -100,15 +101,18 @@ call plug#begin()
 if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'chriskempson/base16-vim'         " Set of color schemes; see http://chriskempson.com/projects/base16/
   Plug 'patstockwell/vim-monokai-tasty'
-  Plug 'tomasr/molokai'
-  Plug 'nanotech/jellybeans.vim'
-  Plug 'rhysd/vim-color-spring-night'
-  Plug 'Nequo/vim-allomancer'
-  Plug 'flrnprz/plastic.vim'
-  Plug 'dracula/vim', { 'as': 'dracula' }
+  Plug 'morhetz/gruvbox'
+  Plug 'jaredgorski/spacecamp'
 
   " Enable these if desired:
   "Plug 'altercation/vim-colors-solarized'
+  "Plug 'tomasr/molokai'
+  "Plug 'nanotech/jellybeans.vim'
+  "Plug 'rhysd/vim-color-spring-night'
+  "Plug 'Nequo/vim-allomancer'
+  "Plug 'flrnprz/plastic.vim'
+  "Plug 'dracula/vim', { 'as': 'dracula' }
+
   "Plug 'lifepillar/vim-solarized8'
   "Plug 'larsbs/vimterial_dark'
   "Plug 'TroyFletcher/vim-colors-synthwave'
@@ -187,14 +191,20 @@ if index(s:plugin_categories, 'version_control') >= 0
   let s:have_vim_rooter = 1
   Plug 'tpope/vim-fugitive'              " Git wrapper
   let s:have_fugitive = 1
+  Plug 'rbong/vim-flog', { 'on': ['Flog', 'Flogsplit'] }  " Git commit graph viewer
   Plug 'mhinz/vim-signify'               " Show visual git diff in the gutter
   let s:have_signify = 1
+  Plug 'rhysd/git-messenger.vim'
 endif
 
 if index(s:plugin_categories, 'development') >= 0
   Plug 'scrooloose/nerdcommenter'        " Commenting code
+  Plug 'liuchengxu/vista.vim'
+  let s:have_vista = 1
+
   if has("python") || has("python3")
     Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs
+    Plug 'psf/black'
   endif
 endif
 
@@ -240,7 +250,7 @@ if index(s:plugin_categories, 'linting_completion') >= 0 && (v:version >= 800)
     endif
     let s:have_deoplete = 1
 
-    if has('nvim')
+    if has('nvim-0.4')
       Plug 'ncm2/float-preview.nvim'  " Nicer completion preview window
       let s:have_float_preview = 1
     endif
@@ -346,6 +356,9 @@ set linebreak      " Wrap long lines by default (for display purposes only)
 set nolist         " Don't display list characters by default
 set listchars=tab:>-,trail:~,extends:>,precedes:<   " Set of list characters
 
+set scroll=5       " Only scroll 5 lines with Ctrl-D/Ctrl-U
+set noemoji        " Fix emoji display (https://youtu.be/F91VWOelFNE)
+
 " Tabbing and indentation
 "=======================================
 
@@ -384,12 +397,12 @@ endif
 syntax enable           " Enable syntax highlighting
 set background=dark     " Dark background color
 
-if !has('nvim')
+set termguicolors
+if exists('s:set_t_8f_t_8b_options') && (s:set_t_8f_t_8b_options > 0)
   " See :help xterm-true-color
   let &t_8f = "\<Esc>[38:2:%lu:%lu:%lum"
   let &t_8b = "\<Esc>[48:2:%lu:%lu:%lum"
 endif
-set termguicolors
 
 if index(s:plugin_categories, 'colorschemes') >= 0
   if (!has("gui_running") && exists('s:colorscheme_use_base16') && s:colorscheme_use_base16 == 1 && filereadable(expand("~/.vimrc_background")))
@@ -420,8 +433,12 @@ set showmatch           " Highlight matching [{()}]
 set mat=2               " How many tenths of a second to blink when matching brackets
 set splitbelow          " New horizontal splits open below
 set splitright          " New vertical splits open to the right
-set foldenable          " Enable folding
 set synmaxcol=300       " Highlight up to 300 columns
+
+set foldenable          " Enable folding
+set foldmethod=indent   " Fold by indentation
+set foldlevelstart=99
+"set foldcolumn=2
 
 set number              " Show line numbers
 if !s:faster_redraw
@@ -434,12 +451,21 @@ if has("macunix") && has("gui_running")
   set macmeta
 endif
 
+" Activate mouse support (can be temporarily deactivated by holding Shift)
+set mouse=nv            " Activate mouse support in normal and visual modes
+set mousefocus=off      " Do not move focus when moving mouse
+set mousemodel=extend   " Keep default mouse model
+
 augroup MichaelAutocmnds
   au!
   " Resize splits when window gets resized
   "autocmd VimResized * wincmd =
+
   " Disable paste mode when leaving insert mode
   "autocmd InsertLeave * set nopaste
+
+  " Run Black on saving Python code files
+  autocmd BufWritePre *.py execute ':Black'
 augroup END
 
 " netrw
@@ -563,10 +589,6 @@ noremap k gk
 " Don't store motions with { or } in the jumplist
 nnoremap <silent> } :<C-u>execute "keepjumps norm! " . v:count1 . "}"<cr>
 nnoremap <silent> { :<C-u>execute "keepjumps norm! " . v:count1 . "{"<cr>
-
-" Scroll 5 lines up and down
-noremap <C-d> 5<C-d>
-noremap <C-u> 5<C-u>
 
 " Move to beginning of line/first whitespace character or end of line
 noremap <leader>0 :call LineHome()<cr>:echo<cr>
@@ -931,6 +953,14 @@ if exists('s:have_chromatica')
   let g:chromatica#responsive_mode=1
 endif
 
+if exists('s:have_vista')
+  let g:vista_sidebar_position = "vertical botright"
+  let g:vista_sidebar_width = 42
+  let g:vista_echo_cursor_strategy = "floating_win"
+
+  nnoremap <silent> <C-\> :Vista!!<cr>
+endif
+
 if exists('s:have_vim_lsp_cxx_highlight')
   "let g:lsp_cxx_hl_log_file = '/tmp/vim-lsp-cxx-hl.log'
   "let g:lsp_cxx_hl_verbose_log = 1
@@ -994,6 +1024,10 @@ if exists('s:have_coc_nvim')
   " Remap for format selected region
   xmap <leader>fo <Plug>(coc-format-selected)
   nmap <leader>fo <Plug>(coc-format-selected)
+
+  if exists('s:have_vista')
+    let g:vista_default_executive = "coc"
+  endif
 endif
 
 let s:have_nvim_lsp_installed = isdirectory(expand('<sfile>:p:h') . '/plugged/nvim-lsp')
@@ -1062,6 +1096,10 @@ EOF
   "inoremap <silent><expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<C-h>"
 
   "inoremap <silent> <C-Space> <C-x><C-o>
+
+  if exists('s:have_vista')
+    let g:vista_default_executive = "nvim_lsp"
+  endif
 endif
 
 if exists('s:have_language_client_neovim')
@@ -1141,6 +1179,10 @@ if exists('s:have_language_client_neovim')
   endfunction
 
   autocmd FileType * call LC_maps()
+
+  if exists('s:have_vista')
+    let g:vista_default_executive = "lcn"
+  endif
 endif
 
 if exists('s:have_deoplete')
