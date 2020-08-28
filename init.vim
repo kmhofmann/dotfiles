@@ -355,8 +355,6 @@ set nowritebackup  " Don't make backups before overwriting a file
 set linebreak      " Wrap long lines by default (for display purposes only)
 set nolist         " Don't display list characters by default
 set listchars=tab:>-,trail:~,extends:>,precedes:<   " Set of list characters
-
-set scroll=5       " Only scroll 5 lines with Ctrl-D/Ctrl-U
 set noemoji        " Fix emoji display (https://youtu.be/F91VWOelFNE)
 
 " Tabbing and indentation
@@ -428,6 +426,8 @@ set nowrap              " Don't wrap overly long lines
 set wildmode=list:longest  " Visual autocomplete for command menu
 " set wildmenu
 " set wildmode=full
+set pumblend=20
+
 set lazyredraw          " Redraw only when we need to.
 set showmatch           " Highlight matching [{()}]
 set mat=2               " How many tenths of a second to blink when matching brackets
@@ -452,9 +452,9 @@ if has("macunix") && has("gui_running")
 endif
 
 " Activate mouse support (can be temporarily deactivated by holding Shift)
-set mouse=nv            " Activate mouse support in normal and visual modes
-set mousefocus=off      " Do not move focus when moving mouse
-set mousemodel=extend   " Keep default mouse model
+"set mouse=nv            " Activate mouse support in normal and visual modes
+"set mousefocus=off      " Do not move focus when moving mouse
+"set mousemodel=extend   " Keep default mouse model
 
 augroup MichaelAutocmnds
   au!
@@ -463,9 +463,6 @@ augroup MichaelAutocmnds
 
   " Disable paste mode when leaving insert mode
   "autocmd InsertLeave * set nopaste
-
-  " Run Black on saving Python code files
-  autocmd BufWritePre *.py execute ':Black'
 augroup END
 
 " netrw
@@ -586,6 +583,13 @@ endif
 noremap j gj
 noremap k gk
 
+" Scroll 5 lines up and down ('set scroll=5' gets reset as soon as window is resized)
+nnoremap <C-d> 5<C-d>
+nnoremap <C-u> 5<C-u>
+
+vnoremap <C-d> 5<C-d>
+vnoremap <C-u> 5<C-u>
+
 " Don't store motions with { or } in the jumplist
 nnoremap <silent> } :<C-u>execute "keepjumps norm! " . v:count1 . "}"<cr>
 nnoremap <silent> { :<C-u>execute "keepjumps norm! " . v:count1 . "{"<cr>
@@ -594,13 +598,6 @@ nnoremap <silent> { :<C-u>execute "keepjumps norm! " . v:count1 . "{"<cr>
 noremap <leader>0 :call LineHome()<cr>:echo<cr>
 noremap <Home> :call LineHome()<cr>:echo<cr>
 inoremap <Home> <C-R>=LineHome()<cr>
-
-"" Move to start/end of line with Ctrl-h/l
-"inoremap <C-h> <C-o>^
-"inoremap <C-l> <C-o>A
-"" Word-wise movement with Ctrl-j/k
-"inoremap <C-j> <C-o>b
-"inoremap <C-k> <C-o>w
 
 " Disable highlighting of search results
 nnoremap <silent><expr> <leader><Space> (&hls && v:hlsearch ? ':nohlsearch' : ':set hlsearch')."\n"
@@ -972,7 +969,7 @@ if exists('s:have_ale')
   let g:ale_linters = {
         \ 'json': 'all',
         \ 'markdown': 'all',
-        \ 'python': 'all',
+        \ 'python': ['flake8', 'mypy'],
         \ 'tex': 'all',
         \ 'vim': 'all',
         \ 'c': ['clangtidy'],
@@ -982,6 +979,7 @@ if exists('s:have_ale')
   let g:ale_fixers = {
         \ 'c': ['clangtidy'],
         \ 'cpp': ['clangtidy'],
+        \ 'python': ['black', 'isort'],
         \ }
 
   let g:ale_open_list = 0
