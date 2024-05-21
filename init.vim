@@ -59,11 +59,10 @@ let s:plugin_categories += ['formatting']
 let s:plugin_categories += ['version_control']
 let s:plugin_categories += ['development']
 let s:plugin_categories += ['linting_completion']
-let s:plugin_categories += ['copyleft_licensed_plugins']
+"let s:plugin_categories += ['copyleft_licensed_plugins']
 
 let s:set_t_8f_t_8b_options = 0
 let s:colorscheme_use_base16 = 0
-"let s:colorscheme = 'vim-monokai-tasty'
 let s:colorscheme = 'catppuccin'
 
 " Bootstrap vim-plug automatically, if not already present
@@ -77,7 +76,6 @@ endif
 
 call plug#begin()
 if index(s:plugin_categories, 'colorschemes') >= 0
-  "Plug 'chriskempson/base16-vim' " Set of color schemes; see http://chriskempson.com/projects/base16/; License: MIT
   Plug 'catppuccin/nvim', { 'as': 'catppuccin' }  " License: MIT
   Plug 'dracula/vim', { 'as': 'dracula' }  " License: MIT
   Plug 'bluz71/vim-moonfly-colors'       " License: MIT
@@ -90,6 +88,8 @@ if index(s:plugin_categories, 'colorschemes') >= 0
   Plug 'larsbs/vimterial_dark'          " License: MIT
   Plug 'erichdongubler/vim-sublime-monokai'  " License: MIT
   Plug 'euclio/vim-nocturne'             " License: MIT
+
+  "Plug 'chriskempson/base16-vim' " Set of color schemes; see http://chriskempson.com/projects/base16/; License: MIT
 
   " Enable these if desired:
   "Plug 'patstockwell/vim-monokai-tasty'  " License: None
@@ -121,11 +121,11 @@ if index(s:plugin_categories, 'textediting') >= 0
   let s:have_splitline = 1
   Plug 'AndrewRadev/sideways.vim'        " Move function arguments sideways. License: MIT
   let s:have_sideways = 1
-  Plug 'svermeulen/vim-cutlass'
+  Plug 'svermeulen/vim-cutlass'          " License: MIT
   let s:have_cutlass = 1
-  Plug 'svermeulen/vim-yoink'
+  Plug 'svermeulen/vim-yoink'            " License: MIT
   let s:have_yoink = 1
-  Plug 'svermeulen/vim-subversive'
+  Plug 'svermeulen/vim-subversive'       " License: MIT
   let s:have_subversive = 1
 endif
 
@@ -654,6 +654,8 @@ endif
 if exists('s:have_bbye')
   " Quick buffer deletion with <Space><Backspace> (using vim-bbye)
   nnoremap <silent> <leader><Bs> :Bdelete<cr>
+else
+  nnoremap <silent> <leader><Bs> :bdelete<cr>
 endif
 
 if exists('s:have_localvimrc')
@@ -848,9 +850,12 @@ endif
 
 if exists('s:have_yoink')
   let g:yoinkIncludeDeleteOperations = 1
+  let g:yoinkMoveCursorToEndOfPaste = 1
 
-  nmap <c-n> <plug>(YoinkPostPasteSwapBack)
-  nmap <c-p> <plug>(YoinkPostPasteSwapForward)
+  "nmap <c-n> <plug>(YoinkPostPasteSwapBack)
+  "nmap <c-p> <plug>(YoinkPostPasteSwapForward)
+  nmap [y <plug>(YoinkPostPasteSwapBack)
+  nmap ]y <plug>(YoinkPostPasteSwapForward)
 
   nmap p <plug>(YoinkPaste_p)
   nmap P <plug>(YoinkPaste_P)
@@ -859,8 +864,8 @@ if exists('s:have_yoink')
   nmap gp <plug>(YoinkPaste_gp)
   nmap gP <plug>(YoinkPaste_gP)
 
-  nmap [y <plug>(YoinkRotateBack)
-  nmap ]y <plug>(YoinkRotateForward)
+  "nmap [y <plug>(YoinkRotateBack)
+  "nmap ]y <plug>(YoinkRotateForward)
 
   nmap <c-=> <plug>(YoinkPostPasteToggleFormat)
 
@@ -913,29 +918,27 @@ if exists('s:have_ale')
   let g:ale_disable_lsp = 1
 endif
 
-let s:have_nvim_lsp_installed = isdirectory(expand('<sfile>:p:h') . '/plugged/nvim-lspconfig')
+let s:have_nvim_lsp_installed = isdirectory(stdpath('data') . '/plugged/nvim-lspconfig')
 
 if (s:have_nvim_lsp_installed)
 lua << EOF
-  require'lspconfig'.ccls.setup{
-    init_options = {
-      highlight = {
-        lsRanges = true;
-      }
-    }
-  }
-  require'lspconfig'.pylsp.setup{}
-  --require'lspconfig'.pyright.setup{}
-  require'lspconfig'.bashls.setup{}
-  require'lspconfig'.vimls.setup{}
-  require'lspconfig'.cssls.setup{}
-  require'lspconfig'.jsonls.setup{}
-  require'lspconfig'.yamlls.setup{}
-  require'lspconfig'.dockerls.setup{}
-  require'lspconfig'.vuels.setup{}
+  require'lspconfig'.pyright.setup{}
+  --require'lspconfig'.pylsp.setup{}
+  --require'lspconfig'.bashls.setup{}
+  --require'lspconfig'.vimls.setup{}
+  --require'lspconfig'.cssls.setup{}
+  --require'lspconfig'.jsonls.setup{}
+  --require'lspconfig'.yamlls.setup{}
+  --require'lspconfig'.dockerls.setup{}
+  --require'lspconfig'.ccls.setup{
+    --init_options = {
+      --highlight = {
+        --lsRanges = true;
+      --}
+    --}
+  --}
 EOF
 
-  autocmd Filetype cpp setlocal omnifunc=v:lua.vim.lsp.omnifunc
   autocmd Filetype python setlocal omnifunc=v:lua.vim.lsp.omnifunc
   autocmd Filetype bash setlocal omnifunc=v:lua.vim.lsp.omnifunc
   autocmd Filetype vim setlocal omnifunc=v:lua.vim.lsp.omnifunc
@@ -943,10 +946,10 @@ EOF
   autocmd Filetype json setlocal omnifunc=v:lua.vim.lsp.omnifunc
   autocmd Filetype yaml setlocal omnifunc=v:lua.vim.lsp.omnifunc
   autocmd Filetype dockerfile setlocal omnifunc=v:lua.vim.lsp.omnifunc 
-  autocmd Filetype dockerfile setlocal omnifunc=v:lua.vim.lsp.omnifunc 
+  autocmd Filetype cpp setlocal omnifunc=v:lua.vim.lsp.omnifunc
 
   nnoremap <silent> K     <cmd>lua vim.lsp.buf.hover()<cr>
-  "nnoremap <silent> <F6>  <cmd>lua vim.lsp.buf.rename()<cr>
+  nnoremap <silent> <F6>  <cmd>lua vim.lsp.buf.rename()<cr>
   nnoremap <silent> <F7>  <cmd>lua vim.lsp.buf.type_definition()<cr>
   nnoremap <silent> <F8>  <cmd>lua vim.lsp.buf.definition()<cr>
   nnoremap <silent> <F9>  <cmd>lua vim.lsp.buf.references()<cr>
