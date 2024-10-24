@@ -141,6 +141,8 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   let s:have_indent_line = 1
   Plug 'liuchengxu/vim-which-key', { 'on': ['WhichKey', 'WhichKey!'] }  " License: MIT
   let s:have_which_key = 1
+  Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }  " License: MIT
+  let s:have_vim_sayonara = 1
 endif
 
 if index(s:plugin_categories, 'filesearch') >= 0
@@ -201,23 +203,33 @@ endif
 
 if index(s:plugin_categories, 'copyleft_licensed_plugins') >= 0
   Plug 'schickling/vim-bufonly', { 'on': ['Bonly', 'BOnly', 'Bufonly'] }  " Close all buffers but the current one. License: None
-  Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window. License: AGPL v3
-  let s:have_bbye = 1
+  Plug 'machakann/vim-sandwich'          " Better 'surrounding' motion (conflicts with vim-sneak); License: None
+  Plug 'rbong/vim-flog', { 'on': ['Flog', 'Flogsplit'] }  " Git commit graph viewer. License: None
 
   Plug 'embear/vim-localvimrc'           " Read local .lvimrc files up the directory tree. License: GPL v3
   let s:have_localvimrc = 1
 
-  Plug 'machakann/vim-sandwich'          " Better 'surrounding' motion (conflicts with vim-sneak); License: None
-
   Plug 'Valloric/ListToggle'             " Easily display or hide quickfix or location list. License: GPL v3
   let s:have_listtoggle = 1
-
-  Plug 'rbong/vim-flog', { 'on': ['Flog', 'Flogsplit'] }  " Git commit graph viewer. License: None
 endif
 
 "if index(s:plugin_categories, 'disabled') >= 0
-  ""Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
+  "Plug 'tpope/vim-vinegar'
+  "Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
   ""Plug 'tpope/vim-surround'              " 'surrounding' motion
+
+  "Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
+  "let s:have_clever_f = 1
+
+  "Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
+  "Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
+  "let s:have_goyo = 1
+
+  "Plug 'moll/vim-bbye', { 'on': ['Bdelete'] }  " Adds :Bdelete command to close buffer but keep window. License: AGPL v3
+  "let s:have_bbye = 1
+  "Plug 'famiu/bufdelete.nvim'            " Add :Bdelete command similar to vim-bbye
+
+  ""Plug 'airblade/vim-accent'             " Easy selection of accented characters (e.g. with <C-X><C-U>)
   ""Plug 'jeetsukumaran/vim-buffergator'   " Select, list and switch between buffers easily
   ""let s:have_buffergator = 1
   ""Plug 'ConradIrwin/vim-bracketed-paste' " Automatically set paste mode
@@ -236,17 +248,9 @@ endif
   ""Plug 'mhinz/vim-startify'              " A fancy start screen
   ""Plug 'dstein64/vim-win'
   ""Plug 'nathanaelkane/vim-indent-guides', { 'on': ['IndentGuidesEnable', 'IndentGuidesDisable', 'IndentGuidesToggle'] }
-
-  "Plug 'rhysd/clever-f.vim'              " extend f/F/t/T to also repeat search
-  "let s:have_clever_f = 1
   ""Plug 'lifepillar/vim-cheat40'
-  "Plug 'junegunn/limelight.vim', { 'on': ['Limelight'] }  " Paragraph-based syntax highlighting
-  "Plug 'junegunn/goyo.vim', { 'on': ['Goyo'] }  " Distraction-free editing
-  "let s:have_goyo = 1
 
   "Plug 'haya14busa/is.vim'               " Improved incremental search; License: MIT
-  "Plug 'tpope/vim-vinegar'
-  "Plug 'tpope/vim-sleuth'                " Detect and set automatic indentation
   "Plug 'liuchengxu/vista.vim'            " License: MIT
   "let s:have_vista = 1                   " NB: Deleted plugin configuration below.
 
@@ -654,7 +658,11 @@ endif
 if exists('s:have_bbye')
   " Quick buffer deletion with <Space><Backspace> (using vim-bbye)
   nnoremap <silent> <leader><Bs> :Bdelete<cr>
+elseif exists('s:have_vim_sayonara')
+  " Quick buffer deletion with <Space><Backspace> (using vim-sayonara)
+  nnoremap <silent> <leader><Bs> :Sayonara!<cr>
 else
+  " Also deletes buffer but won't preserve the window
   nnoremap <silent> <leader><Bs> :bdelete<cr>
 endif
 
@@ -838,7 +846,7 @@ if exists('s:have_cutlass')
   xnoremap m d
 
   nnoremap mm dd
-  nnoremap M D
+  "nnoremap M D
 
   " Or, remap x/X key...
   "nnoremap x d
