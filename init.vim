@@ -55,11 +55,12 @@ let s:plugin_categories += ['textediting']
 let s:plugin_categories += ['statusline']
 let s:plugin_categories += ['ui_additions']
 let s:plugin_categories += ['filesearch']
-let s:plugin_categories += ['formatting']
+"let s:plugin_categories += ['formatting']
 let s:plugin_categories += ['version_control']
 let s:plugin_categories += ['development']
-let s:plugin_categories += ['linting_completion']
-"let s:plugin_categories += ['copyleft_licensed_plugins']
+"let s:plugin_categories += ['python']
+"let s:plugin_categories += ['linting_completion']
+""let s:plugin_categories += ['copyleft_licensed_plugins']
 
 let s:set_t_8f_t_8b_options = 0
 let s:colorscheme_use_base16 = 0
@@ -106,7 +107,7 @@ if index(s:plugin_categories, 'basic') >= 0
   Plug 'tpope/vim-eunuch'                " Syntactic sugar for some UNIX shell commands. License: Vim
   Plug 'tpope/vim-repeat'                " Remaps . such that plugin maps can use it. License: Vim
   Plug 'tpope/vim-unimpaired'            " Provide pairs of mappings for []. License: Vim
-  Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }  " Easier session handling. License: Vim
+  "Plug 'tpope/vim-obsession', { 'on': ['Obsess'] }  " Easier session handling. License: Vim
 endif
 
 if index(s:plugin_categories, 'textsearch') >= 0
@@ -116,7 +117,7 @@ if index(s:plugin_categories, 'textsearch') >= 0
 endif
 
 if index(s:plugin_categories, 'textediting') >= 0
-  Plug 'wellle/targets.vim'              " Add various text objects to give more targets to operate on. License: MIT
+  "Plug 'wellle/targets.vim'              " Add various text objects to give more targets to operate on. License: MIT
   Plug 'drzel/vim-split-line'            " Easier line splitting. License: MIT
   let s:have_splitline = 1
   Plug 'AndrewRadev/sideways.vim'        " Move function arguments sideways. License: MIT
@@ -139,8 +140,8 @@ if index(s:plugin_categories, 'ui_additions') >= 0
   let s:have_undotree = 1
   Plug 'Yggdroot/indentLine'              " License: MIT
   let s:have_indent_line = 1
-  Plug 'liuchengxu/vim-which-key', { 'on': ['WhichKey', 'WhichKey!'] }  " License: MIT
-  let s:have_which_key = 1
+  "Plug 'liuchengxu/vim-which-key', { 'on': ['WhichKey', 'WhichKey!'] }  " License: MIT
+  "let s:have_which_key = 1
   Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }  " License: MIT
   let s:have_vim_sayonara = 1
 endif
@@ -174,7 +175,9 @@ if index(s:plugin_categories, 'development') >= 0
   Plug 'scrooloose/nerdcommenter'        " Commenting code. License: CC0-1.0
   Plug 'sbdchd/neoformat'                " (Re)Formatting code. License: BSD-2-Clause
   let s:have_neoformat = 1
+endif
 
+if index(s:plugin_categories, 'python') >= 0
   if has("python") || has("python3")
     Plug 'plytophogy/vim-virtualenv', { 'on': ['VirtualEnvList', 'VirtualEnvActivate', 'VirtualEnvDeactivate'] }  " Improved working with virtualenvs. License: WTFPL
     Plug 'psf/black'                     " License: MIT
@@ -930,7 +933,8 @@ let s:have_nvim_lsp_installed = isdirectory(stdpath('data') . '/plugged/nvim-lsp
 
 if (s:have_nvim_lsp_installed)
 lua << EOF
-  require'lspconfig'.pyright.setup{}
+  --vim.lsp.enable('pyright')
+  -- TODO: change other calls below; see https://github.com/neovim/nvim-lspconfig
   --require'lspconfig'.pylsp.setup{}
   --require'lspconfig'.bashls.setup{}
   --require'lspconfig'.vimls.setup{}
