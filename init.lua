@@ -10,7 +10,8 @@
 --   ripgrep fd-find \
 --   python3 python3-venv python3-pip \
 --   clangd clang-tidy \
---   shfmt
+--   shfmt\
+--   lua5.4 luarocks
 --
 -- # Install node and go: ...
 --
@@ -491,9 +492,11 @@ end
 --  • Fix historically annoying defaults
 --  • Add IDE-like navigation where helpful
 ----------------------------------------------------------------------
-vim.g.mapleader = "\\"
 local map = vim.keymap.set
 local nore_silent = { noremap = true, silent = true }
+vim.g.mapleader = " "
+vim.g.maplocalleader = " "
+map({ "n", "v" }, "<Space>", "<Nop>", { silent = true })
 
 map("i", "§", "<Esc>", nore_silent)
 
@@ -572,6 +575,30 @@ map("x", "y", "<Plug>(YoinkYankPreserveCursorPosition)", {})
 -- toggle paste formatting (this mapping existed in your old file;
 -- the exact key on the left is hard to see in the raw dump, so I’m using a sane one)
 map("n", "<Leader>yp", "<Plug>(YoinkPostPasteToggleFormat)", { silent = true })
+
+-- NERDCommenter-like mappings using <Leader>
+do
+  local api = require("Comment.api")
+  local map = vim.keymap.set
+  local opts = { silent = true, remap = true }
+
+  -- Toggle comment (linewise)
+  map("n", "<Leader>cc", "<Plug>(comment_toggle_linewise_current)", opts)
+  map("x", "<Leader>cc", "<Plug>(comment_toggle_linewise_visual)", opts)
+
+  -- Toggle comment (NERDCommenter-style alternative binding)
+  map("n", "<Leader>c<Space>", "<Plug>(comment_toggle_linewise_current)", opts)
+  map("x", "<Leader>c<Space>", "<Plug>(comment_toggle_linewise_visual)", opts)
+
+  -- Optional: blockwise toggle
+  map("n", "<Leader>cb", "<Plug>(comment_toggle_blockwise_current)", opts)
+  map("x", "<Leader>cb", "<Plug>(comment_toggle_blockwise_visual)", opts)
+
+  vim.keymap.set("n", "<Leader>cu", api.uncomment.linewise.current, { silent = true })
+  vim.keymap.set("x", "<Leader>cu", function()
+    api.uncomment.linewise(vim.fn.visualmode())
+  end, { silent = true })
+end
 
 -- Sideways (argument swapping)
 map("n", "g<", ":SidewaysLeft<CR>", { noremap = true, silent = true })
